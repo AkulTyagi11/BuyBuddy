@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
+import Button from '../components/Button';
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -130,13 +131,9 @@ export default function RegisterPage() {
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <Button type="submit" loading={loading} fullWidth>
               {loading ? 'Creating account...' : 'Create Account'}
-            </button>
+            </Button>
           </form>
         </div>
 

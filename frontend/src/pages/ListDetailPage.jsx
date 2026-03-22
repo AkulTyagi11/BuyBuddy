@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useGroceryStore from '../stores/groceryStore';
+import Button from '../components/Button';
 
 const UNIT_OPTIONS = [
     { value: 'pcs', label: 'Pieces' },
@@ -73,19 +74,20 @@ function ItemForm({ onSubmit, submitLabel, form, setForm, categories, onCancel }
                 />
             </div>
             <div className="flex gap-2 justify-end">
-                <button
+                <Button
                     type="button"
+                    variant="secondary"
+                    size="sm"
                     onClick={onCancel}
-                    className="px-3 py-1.5 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
                 >
                     Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                     type="submit"
-                    className="px-3 py-1.5 text-sm text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition"
+                    size="sm"
                 >
                     {submitLabel}
-                </button>
+                </Button>
             </div>
         </form>
     );
@@ -271,16 +273,15 @@ export default function ListDetailPage() {
                             {currentList.due_date && ` · Due ${new Date(currentList.due_date).toLocaleDateString()}`}
                         </p>
                     </div>
-                    <button
+                    <Button
                         onClick={() => {
                             resetForm();
                             setShowAddForm(true);
                         }}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition shadow-sm"
                     >
                         <Plus className="w-4 h-4" />
                         Add Item
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Progress bar */}

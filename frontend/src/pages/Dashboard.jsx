@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Calendar, ShoppingBag, Trash2, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useGroceryStore from '../stores/groceryStore';
+import Button from '../components/Button';
 
 export default function Dashboard() {
   const { lists, loading, fetchLists, createList, deleteList } = useGroceryStore();
@@ -48,13 +49,10 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-gray-900">My Grocery Lists</h1>
           <p className="text-gray-500 mt-1">{lists.length} list{lists.length !== 1 ? 's' : ''}</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition shadow-sm"
-        >
+        <Button onClick={() => setShowModal(true)}>
           <Plus className="w-4 h-4" />
           New List
-        </button>
+        </Button>
       </div>
 
       {loading && lists.length === 0 ? (
@@ -64,13 +62,10 @@ export default function Dashboard() {
           <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-1">No lists yet</h3>
           <p className="text-gray-500 mb-6">Create your first grocery list to get started.</p>
-          <button
-            onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition"
-          >
+          <Button onClick={() => setShowModal(true)}>
             <Plus className="w-4 h-4" />
             Create List
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -152,19 +147,17 @@ export default function Dashboard() {
                 />
               </div>
               <div className="flex gap-3 justify-end pt-2">
-                <button
+                <Button
                   type="button"
+                  variant="secondary"
+                  size="sm"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
                 >
                   Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition"
-                >
+                </Button>
+                <Button type="submit" size="sm">
                   Create
-                </button>
+                </Button>
               </div>
             </form>
           </div>

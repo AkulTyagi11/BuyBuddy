@@ -2,6 +2,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { LogOut, ShoppingCart, LayoutDashboard, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import useAuthStore from '../stores/authStore';
+import Button from './Button';
 
 export default function Navbar() {
   const { user, logout } = useAuthStore();
@@ -51,13 +52,15 @@ export default function Navbar() {
             <span className="text-sm text-gray-600">
               Hi, <strong>{user?.first_name || user?.username}</strong>
             </span>
-            <button
+            <Button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              variant="ghost"
+              size="sm"
+              className="text-gray-600 hover:text-semantic-error hover:bg-red-50"
             >
               <LogOut className="w-4 h-4" />
               Logout
-            </button>
+            </Button>
           </div>
 
           <div className="md:hidden flex items-center">
@@ -93,13 +96,15 @@ export default function Navbar() {
               <span className="block px-3 py-1 text-sm text-gray-500">
                 Signed in as <strong>{user?.username}</strong>
               </span>
-              <button
+              <Button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg w-full"
+                variant="destructive"
+                size="sm"
+                fullWidth
               >
                 <LogOut className="w-4 h-4" />
                 Logout
-              </button>
+              </Button>
             </div>
           </div>
         </div>
