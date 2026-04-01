@@ -6,6 +6,7 @@ import {
 import toast from 'react-hot-toast';
 import useGroceryStore from '../stores/groceryStore';
 import Button from '../components/Button';
+import Input from '../components/Input';
 
 const UNIT_OPTIONS = [
     { value: 'pcs', label: 'Pieces' },
@@ -24,24 +25,27 @@ function ItemForm({ onSubmit, submitLabel, form, setForm, categories, onCancel }
     return (
         <form onSubmit={onSubmit} className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                <input
+                <Input
+                    label="Item Name"
                     type="text"
                     placeholder="Item name"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     required
                     autoFocus
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm"
+                    clearable
+                    inputClassName="py-2 text-sm"
                 />
                 <div className="flex gap-2">
-                    <input
+                    <Input
+                        label="Quantity"
                         type="number"
                         placeholder="Qty"
                         value={form.quantity}
                         onChange={(e) => setForm({ ...form, quantity: e.target.value })}
                         min="0.01"
                         step="0.01"
-                        className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm"
+                        inputClassName="w-20 py-2 text-sm"
                     />
                     <select
                         value={form.unit}
@@ -63,14 +67,15 @@ function ItemForm({ onSubmit, submitLabel, form, setForm, categories, onCancel }
                         <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                 </select>
-                <input
+                <Input
+                    label="Price"
                     type="number"
                     placeholder="Price (optional)"
                     value={form.price}
                     onChange={(e) => setForm({ ...form, price: e.target.value })}
                     min="0"
                     step="0.01"
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm"
+                    inputClassName="py-2 text-sm"
                 />
             </div>
             <div className="flex gap-2 justify-end">

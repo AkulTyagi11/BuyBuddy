@@ -4,6 +4,7 @@ import { Plus, Calendar, ShoppingBag, Trash2, CheckCircle2 } from 'lucide-react'
 import toast from 'react-hot-toast';
 import useGroceryStore from '../stores/groceryStore';
 import Button from '../components/Button';
+import Input from '../components/Input';
 
 export default function Dashboard() {
   const { lists, loading, fetchLists, createList, deleteList } = useGroceryStore();
@@ -125,27 +126,22 @@ export default function Dashboard() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Create New List</h2>
             <form onSubmit={handleCreate} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">List Name</label>
-                <input
-                  type="text"
-                  value={newListName}
-                  onChange={(e) => setNewListName(e.target.value)}
-                  required
-                  autoFocus
-                  placeholder="e.g., Weekly Groceries"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Due Date (optional)</label>
-                <input
-                  type="date"
-                  value={newListDueDate}
-                  onChange={(e) => setNewListDueDate(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                />
-              </div>
+              <Input
+                label="List Name"
+                type="text"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                required
+                autoFocus
+                clearable
+                placeholder="e.g., Weekly Groceries"
+              />
+              <Input
+                label="Due Date (optional)"
+                type="date"
+                value={newListDueDate}
+                onChange={(e) => setNewListDueDate(e.target.value)}
+              />
               <div className="flex gap-3 justify-end pt-2">
                 <Button
                   type="button"
