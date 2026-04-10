@@ -8,6 +8,7 @@ import useGroceryStore from '../stores/groceryStore';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import Card from '../components/Card';
+import Skeleton from '../components/Skeleton';
 
 const UNIT_OPTIONS = [
     { value: 'pcs', label: 'Pieces' },
@@ -146,6 +147,47 @@ function ItemRow({ item, onToggle, onEdit, onDelete }) {
     );
 }
 
+function ListDetailSkeleton() {
+    return (
+        <div>
+            <div className="mb-6">
+                <Skeleton className="mb-3 h-4 w-28" />
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1">
+                        <Skeleton className="h-8 w-60 max-w-full" />
+                        <Skeleton className="mt-2 h-4 w-72 max-w-full" />
+                    </div>
+                    <Skeleton className="h-10 w-28" />
+                </div>
+                <Skeleton className="mt-4 h-2.5 w-full rounded-full" />
+            </div>
+
+            <div className="space-y-6">
+                {Array.from({ length: 2 }).map((_, sectionIndex) => (
+                    <Card key={`detail-skeleton-section-${sectionIndex}`} className="overflow-hidden" padding="none" accent>
+                        <div className="border-b border-gray-200 bg-gray-50 px-4 py-2">
+                            <Skeleton className="h-3 w-28" />
+                        </div>
+                        {Array.from({ length: 4 }).map((__, rowIndex) => (
+                            <div
+                                key={`detail-skeleton-row-${sectionIndex}-${rowIndex}`}
+                                className="flex items-center gap-3 border-b border-gray-100 px-4 py-3 last:border-b-0"
+                            >
+                                <Skeleton className="h-5 w-5" circle />
+                                <div className="flex-1">
+                                    <Skeleton className="h-4 w-40 max-w-full" />
+                                    <Skeleton className="mt-2 h-3 w-56 max-w-full" />
+                                </div>
+                                <Skeleton className="h-4 w-8" />
+                            </div>
+                        ))}
+                    </Card>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 export default function ListDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -238,7 +280,7 @@ export default function ListDetailPage() {
     };
 
     if (loading && !currentList) {
-        return <div className="text-center py-20 text-gray-400">Loading...</div>;
+        return <ListDetailSkeleton />;
     }
 
     if (!currentList) {

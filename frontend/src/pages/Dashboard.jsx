@@ -17,6 +17,7 @@ import useAuthStore from '../stores/authStore';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import Card from '../components/Card';
+import Skeleton from '../components/Skeleton';
 
 const FILTER_TABS = [
   { key: 'all', label: 'All' },
@@ -30,6 +31,74 @@ function formatDateDisplay(value) {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return 'No due date';
   return parsed.toLocaleDateString();
+}
+
+function DashboardLoadingSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <Skeleton className="h-9 w-72" />
+          <Skeleton className="mt-2 h-4 w-96 max-w-full" />
+        </div>
+        <Skeleton className="h-10 w-28" />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Card key={`stat-skeleton-${index}`} accent>
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="mt-3 h-8 w-16" />
+            <Skeleton className="mt-2 h-3 w-28" />
+          </Card>
+        ))}
+      </div>
+
+      <Card className="space-y-4" accent>
+        <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto] lg:items-end">
+          <div>
+            <Skeleton className="mb-2 h-4 w-16" />
+            <Skeleton className="h-[42px] w-full" />
+          </div>
+          <div>
+            <Skeleton className="mb-2 h-4 w-12" />
+            <Skeleton className="h-[42px] w-44" />
+          </div>
+          <div>
+            <Skeleton className="mb-2 h-4 w-12" />
+            <div className="flex gap-2">
+              <Skeleton className="h-9 w-10" />
+              <Skeleton className="h-9 w-10" />
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={`tab-skeleton-${index}`} className="h-8 w-20" />
+          ))}
+        </div>
+      </Card>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <Card key={`list-skeleton-${index}`} accent>
+            <div className="flex items-start justify-between">
+              <div className="w-full">
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="mt-2 h-5 w-20 rounded-full" />
+              </div>
+              <Skeleton className="h-5 w-5" circle />
+            </div>
+            <div className="mt-4 space-y-2">
+              <Skeleton className="h-3 w-48" />
+              <Skeleton className="h-3 w-36" />
+            </div>
+            <Skeleton className="mt-4 h-2 w-full rounded-full" />
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function Dashboard() {
@@ -157,6 +226,10 @@ export default function Dashboard() {
 
   const userLabel = user?.first_name || user?.username || 'there';
 
+  if (loading && lists.length === 0) {
+    return <DashboardLoadingSkeleton />;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -260,9 +333,7 @@ export default function Dashboard() {
         </div>
       </Card>
 
-      {loading && lists.length === 0 ? (
-        <div className="py-20 text-center text-text-muted">Loading...</div>
-      ) : lists.length === 0 ? (
+      {lists.length === 0 ? (
         <div className="py-20 text-center">
           <ShoppingBag className="mx-auto mb-4 h-16 w-16 text-gray-300" />
           <h3 className="mb-1 text-lg font-medium text-gray-900">No lists yet</h3>
