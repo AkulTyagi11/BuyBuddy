@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import useGroceryStore from '../stores/groceryStore';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import Card from '../components/Card';
 
 const UNIT_OPTIONS = [
     { value: 'pcs', label: 'Pieces' },
@@ -23,7 +24,7 @@ const UNIT_OPTIONS = [
 
 function ItemForm({ onSubmit, submitLabel, form, setForm, categories, onCancel }) {
     return (
-        <form onSubmit={onSubmit} className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+        <Card as="form" onSubmit={onSubmit} className="mb-4" padding="sm" accent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                 <Input
                     label="Item Name"
@@ -94,7 +95,7 @@ function ItemForm({ onSubmit, submitLabel, form, setForm, categories, onCancel }
                     {submitLabel}
                 </Button>
             </div>
-        </form>
+        </Card>
     );
 }
 
@@ -312,19 +313,19 @@ export default function ListDetailPage() {
                 <div className="space-y-6">
                     {/* Unpurchased - grouped by category */}
                     {Object.entries(grouped).map(([category, categoryItems]) => (
-                        <div key={category} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                        <Card key={category} className="overflow-hidden" padding="none" accent>
                             <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
                                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{category}</h3>
                             </div>
                             {categoryItems.map((item) => (
                                 <ItemRow key={item.id} item={item} onToggle={handleToggle} onEdit={handleEdit} onDelete={handleDelete} />
                             ))}
-                        </div>
+                        </Card>
                     ))}
 
                     {/* Purchased items */}
                     {purchased.length > 0 && (
-                        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                        <Card className="overflow-hidden" padding="none" accent>
                             <div className="px-4 py-2 bg-emerald-50 border-b border-emerald-100">
                                 <h3 className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">
                                     Purchased ({purchased.length})
@@ -333,7 +334,7 @@ export default function ListDetailPage() {
                             {purchased.map((item) => (
                                 <ItemRow key={item.id} item={item} onToggle={handleToggle} onEdit={handleEdit} onDelete={handleDelete} />
                             ))}
-                        </div>
+                        </Card>
                     )}
                 </div>
             )}

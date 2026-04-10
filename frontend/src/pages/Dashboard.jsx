@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import useGroceryStore from '../stores/groceryStore';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import Card from '../components/Card';
 
 export default function Dashboard() {
   const { lists, loading, fetchLists, createList, deleteList } = useGroceryStore();
@@ -73,10 +74,14 @@ export default function Dashboard() {
           {lists.map((list) => {
             const progress = list.item_count > 0 ? Math.round((list.purchased_count / list.item_count) * 100) : 0;
             return (
-              <Link
+              <Card
+                as={Link}
                 key={list.id}
                 to={`/lists/${list.id}`}
-                className="group bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-emerald-200 transition-all"
+                hover
+                accent
+                padding="none"
+                className="group p-5"
               >
                 <div className="flex items-start justify-between mb-3">
                   <h3 className="font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors truncate pr-2">
@@ -114,7 +119,7 @@ export default function Dashboard() {
                   />
                 </div>
                 <p className="text-xs text-gray-400 mt-1">{progress}% complete</p>
-              </Link>
+              </Card>
             );
           })}
         </div>
@@ -123,7 +128,7 @@ export default function Dashboard() {
       {/* Create List Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+          <Card className="w-full max-w-md" accent>
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Create New List</h2>
             <form onSubmit={handleCreate} className="space-y-4">
               <Input
@@ -156,7 +161,7 @@ export default function Dashboard() {
                 </Button>
               </div>
             </form>
-          </div>
+          </Card>
         </div>
       )}
     </div>

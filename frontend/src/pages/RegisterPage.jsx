@@ -4,6 +4,7 @@ import { ShoppingCart, Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import Card from '../components/Card';
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -43,7 +44,7 @@ export default function RegisterPage() {
           <p className="text-gray-500 mt-1">Get started with GroceryList</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+        <Card padding="lg" accent>
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
               {error}
@@ -123,7 +124,7 @@ export default function RegisterPage() {
               {loading ? 'Creating account...' : 'Create Account'}
             </Button>
           </form>
-        </div>
+        </Card>
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Already have an account?{' '}

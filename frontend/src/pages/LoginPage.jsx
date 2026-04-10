@@ -4,6 +4,7 @@ import { ShoppingCart, Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import Card from '../components/Card';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -33,7 +34,7 @@ export default function LoginPage() {
           <p className="text-gray-500 mt-1">Sign in to your GroceryList account</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+        <Card padding="lg" accent>
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
               {error}
@@ -74,7 +75,7 @@ export default function LoginPage() {
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
-        </div>
+        </Card>
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Don't have an account?{' '}
