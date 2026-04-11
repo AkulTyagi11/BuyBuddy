@@ -342,8 +342,16 @@ export default function ListDetailPage() {
             </div>
 
             {/* Add/Edit Form */}
-            {showAddForm && <ItemForm onSubmit={handleAdd} submitLabel="Add Item" form={form} setForm={setForm} categories={categories} onCancel={resetForm} />}
-            {editingId && <ItemForm onSubmit={handleUpdate} submitLabel="Update Item" form={form} setForm={setForm} categories={categories} onCancel={resetForm} />}
+            {showAddForm && (
+                <div className="modal-enter">
+                    <ItemForm onSubmit={handleAdd} submitLabel="Add Item" form={form} setForm={setForm} categories={categories} onCancel={resetForm} />
+                </div>
+            )}
+            {editingId && (
+                <div className="modal-enter">
+                    <ItemForm onSubmit={handleUpdate} submitLabel="Update Item" form={form} setForm={setForm} categories={categories} onCancel={resetForm} />
+                </div>
+            )}
 
             {/* Items */}
             {items.length === 0 ? (
@@ -354,8 +362,14 @@ export default function ListDetailPage() {
             ) : (
                 <div className="space-y-6">
                     {/* Unpurchased - grouped by category */}
-                    {Object.entries(grouped).map(([category, categoryItems]) => (
-                        <Card key={category} className="overflow-hidden" padding="none" accent>
+                    {Object.entries(grouped).map(([category, categoryItems], index) => (
+                        <Card
+                            key={category}
+                            className="overflow-hidden stagger-enter"
+                            padding="none"
+                            accent
+                            style={{ '--stagger-index': index }}
+                        >
                             <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
                                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{category}</h3>
                             </div>
@@ -367,7 +381,12 @@ export default function ListDetailPage() {
 
                     {/* Purchased items */}
                     {purchased.length > 0 && (
-                        <Card className="overflow-hidden" padding="none" accent>
+                        <Card
+                            className="overflow-hidden stagger-enter"
+                            padding="none"
+                            accent
+                            style={{ '--stagger-index': Object.keys(grouped).length }}
+                        >
                             <div className="px-4 py-2 bg-emerald-50 border-b border-emerald-100">
                                 <h3 className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">
                                     Purchased ({purchased.length})

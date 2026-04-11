@@ -33,7 +33,7 @@ export default function LoginPage() {
         : { label: 'Strong', color: 'text-semantic-success' };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-emerald-50 via-white to-teal-50 px-4 py-8 md:px-6">
+    <div className="page-enter relative min-h-screen overflow-hidden bg-linear-to-br from-emerald-50 via-white to-teal-50 px-4 py-8 md:px-6">
       <div className="pointer-events-none absolute -left-20 top-10 h-64 w-64 rounded-full bg-brand-primary/10 blur-3xl" />
       <div className="pointer-events-none absolute -right-20 bottom-10 h-72 w-72 rounded-full bg-semantic-info/10 blur-3xl" />
 
@@ -79,7 +79,7 @@ export default function LoginPage() {
 
           <Card padding="lg" accent className="shadow-[0_24px_48px_rgba(31,41,55,0.1)]">
             {error && (
-              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <div className="shake-enter mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 <span>{error}</span>
                 <button
                   onClick={clearError}

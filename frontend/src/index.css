@@ -57,6 +57,71 @@ body {
   animation-delay: 250ms;
 }
 
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes staggerUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shakeX {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-8px);
+  }
+  40%,
+  80% {
+    transform: translateX(8px);
+  }
+}
+
+.page-enter {
+  animation: pageEnter 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stagger-enter {
+  animation: staggerUp 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--stagger-index, 0) * 50ms);
+}
+
+.modal-enter {
+  animation: modalPop 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.shake-enter {
+  animation: shakeX 320ms ease-in-out;
+}
+
 @keyframes shimmer {
   0% {
     background-position: -1000px 0;
@@ -71,4 +136,17 @@ body {
   background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
   background-size: 1000px 100%;
   animation: shimmer 2s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-fade-up,
+  .auth-float,
+  .auth-float-delayed,
+  .page-enter,
+  .stagger-enter,
+  .modal-enter,
+  .shake-enter,
+  .skeleton {
+    animation: none !important;
+  }
 }

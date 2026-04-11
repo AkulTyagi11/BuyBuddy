@@ -360,7 +360,7 @@ export default function Dashboard() {
         </Card>
       ) : (
         <div className={viewMode === 'grid' ? 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3' : 'space-y-3'}>
-          {visibleLists.map((list) => {
+          {visibleLists.map((list, index) => {
             const statusText = list.isCompleted
               ? 'Completed'
               : list.isOverdue
@@ -385,7 +385,8 @@ export default function Dashboard() {
                 hover
                 accent
                 padding="none"
-                className={`group p-5 ${viewMode === 'list' ? 'sm:p-4' : ''}`}
+                className={`group p-5 stagger-enter ${viewMode === 'list' ? 'sm:p-4' : ''}`}
+                style={{ '--stagger-index': index }}
               >
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div>
@@ -435,7 +436,7 @@ export default function Dashboard() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <Card className="w-full max-w-md" accent>
+          <Card className="modal-enter w-full max-w-md" accent>
             <h2 className="mb-4 text-lg font-semibold text-gray-900">Create New List</h2>
             <form onSubmit={handleCreate} className="space-y-4">
               <Input
