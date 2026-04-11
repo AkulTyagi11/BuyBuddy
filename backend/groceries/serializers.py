@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
+from datetime import date
 
-from .models import Category, GroceryList, GroceryItem
+from .models import Category, GroceryList, GroceryItem, Pantry, PantryItem
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -61,3 +61,30 @@ class GroceryListSummarySerializer(serializers.ModelSerializer):
 
     def get_purchased_count(self, obj):
         return obj.items.filter(is_purchased=True).count()
+
+
+class PantryItemSerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    days_until_expiry = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PantryItem
+        fields = (
+            'id', 'name', 'quantity', 'unit', 'category', 'category_name',
+            'expiry_date', 'condition', 'notes', 'added_date', 'updated_at', 'days_until_expiry',
+        )
+        read_only_fields = ('added_date', 'updated_at', 'days_until_expiry')
+
+    def get_days_until_expiry(self, obj):
+        if not obj.expiry_date:
+            return None
+        return (obj.expiry_date - date.today()).days
+
+
+class PantrySerializer(serializers.ModelSerializer):
+    items = PantryItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Pantry
+        fields = ('id', 'user', 'items', 'created_at', 'updated_at')
+        read_only_fields = ('user', 'created_at', 'updated_at')

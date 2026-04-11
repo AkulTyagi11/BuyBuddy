@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+html {
+  scroll-behavior: smooth;
+}
+
 @theme {
   --color-brand-primary: #10B981;
   --color-brand-primary-hover: #059669;
@@ -179,6 +183,22 @@ body {
   transform: translateY(0) scale(0.96);
 }
 
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dropdown-enter {
+  animation: dropdownFade 180ms ease-out both;
+  transform-origin: top right;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .auth-fade-up,
   .auth-float,
@@ -189,7 +209,8 @@ body {
   .shake-enter,
   .skeleton,
   .empty-state-icon,
-  .attention-pulse {
+  .attention-pulse,
+  .dropdown-enter {
     animation: none !important;
   }
 }

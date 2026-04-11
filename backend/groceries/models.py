@@ -75,3 +75,55 @@ class GroceryItem(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Pantry(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='pantry',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+        verbose_name_plural = 'pantries'
+
+    def __str__(self):
+        return f"{self.user}'s pantry"
+
+
+class PantryItem(models.Model):
+    CONDITION_CHOICES = [
+        ('stock', 'In Stock'),
+        ('low', 'Running Low'),
+        ('expired', 'Expired'),
+    ]
+
+    pantry = models.ForeignKey(
+        Pantry,
+        on_delete=models.CASCADE,
+        related_name='items',
+    )
+    name = models.CharField(max_length=255)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1)
+    unit = models.CharField(max_length=10, choices=GroceryItem.UNIT_CHOICES, default='pcs')
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='pantry_items',
+    )
+    expiry_date = models.DateField(null=True, blank=True)
+    condition = models.CharField(max_length=20, choices=CONDITION_CHOICES, default='stock')
+    notes = models.TextField(blank=True)
+    added_date = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-added_date']
+
+    def __str__(self):
+        return self.name

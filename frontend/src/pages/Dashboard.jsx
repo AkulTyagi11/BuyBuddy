@@ -19,6 +19,7 @@ import Input from '../components/Input';
 import Card from '../components/Card';
 import Skeleton from '../components/Skeleton';
 import EmptyState from '../components/EmptyState';
+import ExpiringItemsAlert from '../components/ExpiringItemsAlert';
 
 const FILTER_TABS = [
   { key: 'all', label: 'All' },
@@ -265,6 +266,8 @@ export default function Dashboard() {
           <p className="mt-1 text-sm text-text-muted">Due soon: {stats.dueSoonCount}</p>
         </Card>
       </div>
+
+      <ExpiringItemsAlert />
 
       <Card className="space-y-4" accent>
         <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto] lg:items-end">

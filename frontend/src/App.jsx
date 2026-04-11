@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
 import ListDetailPage from './pages/ListDetailPage';
+import PantryPage from './pages/PantryPage';
 import AppLayout from './layouts/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -35,6 +36,7 @@ function App() {
           }
         >
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/pantry" element={<PantryPage />} />
           <Route path="/lists/:id" element={<ListDetailPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
