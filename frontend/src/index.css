@@ -138,6 +138,47 @@ body {
   animation: shimmer 2s linear infinite;
 }
 
+@keyframes emptyFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes attentionPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+  }
+}
+
+.empty-state-icon {
+  animation: emptyFloat 3s ease-in-out infinite;
+  opacity: 0.35;
+}
+
+.attention-pulse {
+  animation: attentionPulse 2.2s ease-in-out infinite;
+}
+
+.icon-button-motion {
+  transition: transform 180ms ease-out, color 180ms ease-out, background-color 180ms ease-out;
+}
+
+.icon-button-motion:hover {
+  transform: translateY(-1px) scale(1.04);
+}
+
+.icon-button-motion:active {
+  transform: translateY(0) scale(0.96);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .auth-fade-up,
   .auth-float,
@@ -146,7 +187,9 @@ body {
   .stagger-enter,
   .modal-enter,
   .shake-enter,
-  .skeleton {
+  .skeleton,
+  .empty-state-icon,
+  .attention-pulse {
     animation: none !important;
   }
 }

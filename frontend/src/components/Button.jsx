@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 
 const baseClasses =
-  'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-[250ms] ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-[3px] focus-visible:outline-offset-[3px] disabled:opacity-50 disabled:cursor-not-allowed';
+  'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-[250ms] ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-[3px] focus-visible:outline-offset-[3px] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100';
 
 const variantClasses = {
   primary:

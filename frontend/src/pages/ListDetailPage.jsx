@@ -9,6 +9,7 @@ import Button from '../components/Button';
 import Input from '../components/Input';
 import Card from '../components/Card';
 import Skeleton from '../components/Skeleton';
+import EmptyState from '../components/EmptyState';
 
 const UNIT_OPTIONS = [
     { value: 'pcs', label: 'Pieces' },
@@ -108,7 +109,7 @@ function ItemRow({ item, onToggle, onEdit, onDelete }) {
         >
             <button
                 onClick={() => onToggle(item.id)}
-                className={`shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition ${item.is_purchased
+                className={`icon-button-motion shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition ${item.is_purchased
                         ? 'bg-emerald-500 border-emerald-500 text-white'
                         : 'border-gray-300 hover:border-emerald-400'
                     }`}
@@ -131,14 +132,14 @@ function ItemRow({ item, onToggle, onEdit, onDelete }) {
                 {!item.is_purchased && (
                     <button
                         onClick={() => onEdit(item)}
-                        className="p-1 text-gray-400 hover:text-blue-500 transition"
+                        className="icon-button-motion rounded p-1 text-gray-400 hover:bg-blue-50 hover:text-blue-500"
                     >
                         <Pencil className="w-3.5 h-3.5" />
                     </button>
                 )}
                 <button
                     onClick={() => onDelete(item.id)}
-                    className="p-1 text-gray-400 hover:text-red-500 transition"
+                    className="icon-button-motion rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500"
                 >
                     <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -284,7 +285,19 @@ export default function ListDetailPage() {
     }
 
     if (!currentList) {
-        return <div className="text-center py-20 text-gray-500">List not found.</div>;
+        return (
+            <EmptyState
+                icon={ShoppingBasket}
+                title="List not found"
+                description="This list may have been deleted or you may not have access to it."
+                action={(
+                    <Button variant="secondary" onClick={() => navigate('/dashboard')}>
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to dashboard
+                    </Button>
+                )}
+            />
+        );
     }
 
     const unpurchased = items.filter((i) => !i.is_purchased);
@@ -355,10 +368,23 @@ export default function ListDetailPage() {
 
             {/* Items */}
             {items.length === 0 ? (
-                <div className="text-center py-16">
-                    <ShoppingBasket className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500">No items yet. Add your first item!</p>
-                </div>
+                <EmptyState
+                    icon={ShoppingBasket}
+                    title="No items yet"
+                    description="Add your first item to start tracking this list."
+                    compact
+                    action={(
+                        <Button
+                            onClick={() => {
+                                resetForm();
+                                setShowAddForm(true);
+                            }}
+                        >
+                            <Plus className="h-4 w-4" />
+                            Add Item
+                        </Button>
+                    )}
+                />
             ) : (
                 <div className="space-y-6">
                     {/* Unpurchased - grouped by category */}

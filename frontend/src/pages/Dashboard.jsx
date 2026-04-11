@@ -18,6 +18,7 @@ import Button from '../components/Button';
 import Input from '../components/Input';
 import Card from '../components/Card';
 import Skeleton from '../components/Skeleton';
+import EmptyState from '../components/EmptyState';
 
 const FILTER_TABS = [
   { key: 'all', label: 'All' },
@@ -334,30 +335,36 @@ export default function Dashboard() {
       </Card>
 
       {lists.length === 0 ? (
-        <div className="py-20 text-center">
-          <ShoppingBag className="mx-auto mb-4 h-16 w-16 text-gray-300" />
-          <h3 className="mb-1 text-lg font-medium text-gray-900">No lists yet</h3>
-          <p className="mb-6 text-gray-500">Create your first grocery list to get started.</p>
-          <Button onClick={() => setShowModal(true)}>
-            <Plus className="w-4 h-4" />
-            Create List
-          </Button>
-        </div>
+        <EmptyState
+          icon={ShoppingBag}
+          title="No lists yet"
+          description="Create your first grocery list to get started."
+          action={(
+            <Button onClick={() => setShowModal(true)}>
+              <Plus className="w-4 h-4" />
+              Create List
+            </Button>
+          )}
+        />
       ) : visibleLists.length === 0 ? (
-        <Card className="py-16 text-center" accent>
-          <p className="text-lg font-medium text-neutral-dark">No lists match your filters</p>
-          <p className="mt-1 text-text-muted">Try another search term or switch filters.</p>
-          <Button
-            className="mt-5"
-            variant="secondary"
-            onClick={() => {
-              setSearchTerm('');
-              setActiveFilter('all');
-            }}
-          >
-            Reset Filters
-          </Button>
-        </Card>
+        <EmptyState
+          icon={Search}
+          title="No lists match your filters"
+          description="Try another search term or switch filters."
+          compact
+          card
+          action={(
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setSearchTerm('');
+                setActiveFilter('all');
+              }}
+            >
+              Reset Filters
+            </Button>
+          )}
+        />
       ) : (
         <div className={viewMode === 'grid' ? 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3' : 'space-y-3'}>
           {visibleLists.map((list, index) => {
@@ -374,7 +381,7 @@ export default function Dashboard() {
               : list.isOverdue
                 ? 'bg-semantic-error/10 text-semantic-error'
                 : list.isDueSoon
-                  ? 'bg-semantic-warning/10 text-semantic-warning'
+                  ? 'attention-pulse bg-semantic-warning/10 text-semantic-warning'
                   : 'bg-brand-primary-light text-brand-primary';
 
             return (
@@ -403,7 +410,7 @@ export default function Dashboard() {
                       e.stopPropagation();
                       handleDelete(list.id, list.name);
                     }}
-                    className="shrink-0 p-1 text-gray-400 transition-colors hover:text-red-500"
+                    className="icon-button-motion shrink-0 rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500"
                     aria-label={`Delete ${list.name}`}
                   >
                     <Trash2 className="w-4 h-4" />

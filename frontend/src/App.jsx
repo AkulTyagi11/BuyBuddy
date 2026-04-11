@@ -10,7 +10,20 @@ import ProtectedRoute from './components/ProtectedRoute';
 function App() {
   return (
     <BrowserRouter>
-      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            borderRadius: '12px',
+            border: '1px solid #E5E7EB',
+            boxShadow: '0 10px 30px rgba(31, 41, 55, 0.12)',
+            padding: '12px 14px',
+            background: '#FFFFFF',
+            color: '#1F2937',
+          },
+        }}
+      />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
