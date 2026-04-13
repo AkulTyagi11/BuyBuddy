@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Plus, Save, X } from 'lucide-react';
 import Button from './Button';
 import Card from './Card';
 import Input from './Input';
+import Modal from './Modal';
 
 const UNIT_OPTIONS = [
   { value: 'pcs', label: 'Pieces' },
@@ -33,6 +34,39 @@ const defaultForm = {
   notes: '',
 };
 
+const COMMON_PANTRY_ITEMS = [
+  'Milk', 'Eggs', 'Bread', 'Rice', 'Pasta', 'Tomatoes', 'Onions', 'Potatoes',
+  'Olive Oil', 'Yogurt', 'Butter', 'Chicken Breast', 'Apples', 'Bananas', 'Coffee',
+  'Tea', 'Sugar', 'Salt', 'Lentils', 'Cheese',
+];
+
+const CATEGORY_KEYWORDS = {
+  vegetables: ['onion', 'tomato', 'potato', 'carrot', 'lettuce', 'spinach', 'broccoli'],
+  fruits: ['apple', 'banana', 'orange', 'grape', 'mango', 'berries'],
+  dairy: ['milk', 'yogurt', 'butter', 'cheese', 'cream'],
+  meat: ['chicken', 'beef', 'pork', 'fish', 'mutton'],
+  beverages: ['coffee', 'tea', 'juice', 'soda', 'water'],
+  grains: ['rice', 'pasta', 'flour', 'oats', 'bread'],
+  spices: ['salt', 'pepper', 'turmeric', 'masala', 'spice'],
+};
+
+function getSuggestedCategoryId(itemName, categories) {
+  const normalizedName = itemName.trim().toLowerCase();
+  if (!normalizedName) return null;
+
+  for (const [bucket, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (!keywords.some((keyword) => normalizedName.includes(keyword))) {
+      continue;
+    }
+
+    const match = categories.find((category) => category.name.toLowerCase().includes(bucket));
+    if (match) return match.id;
+  }
+
+  const fallback = categories.find((category) => normalizedName.includes(category.name.toLowerCase()));
+  return fallback?.id ?? null;
+}
+
 function toFormState(initialValues) {
   if (!initialValues) {
     return defaultForm;
@@ -57,13 +91,31 @@ export default function AddPantryItemModal({
   loading = false,
 }) {
   const [formData, setFormData] = useState(() => toFormState(initialValues));
+  const [categoryTouched, setCategoryTouched] = useState(() => Boolean(initialValues?.category));
+  const suggestionListId = useId();
 
   const isEditing = Boolean(initialValues?.id);
 
   const title = isEditing ? 'Edit Pantry Item' : 'Add Pantry Item';
 
+  const suggestedCategoryId = getSuggestedCategoryId(formData.name, categories);
+  const suggestedCategory = categories.find((category) => category.id === suggestedCategoryId);
+
   const handleChange = (key, value) => {
     setFormData((current) => ({ ...current, [key]: value }));
+  };
+
+  const handleNameChange = (value) => {
+    setFormData((current) => {
+      const next = { ...current, name: value };
+
+      const nextSuggestedCategoryId = getSuggestedCategoryId(value, categories);
+      if (!categoryTouched && nextSuggestedCategoryId) {
+        next.category = String(nextSuggestedCategoryId);
+      }
+
+      return next;
+    });
   };
 
   const handleSubmit = async (event) => {
@@ -84,8 +136,8 @@ export default function AddPantryItemModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-dark/40 p-4">
-      <Card className="modal-enter w-full max-w-lg" accent>
+    <Modal open onClose={onClose}>
+      <Card className="modal-enter mx-auto w-full max-w-lg" accent>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-neutral-dark">{title}</h2>
           <Button variant="ghost" size="sm" className="!p-2" onClick={onClose} aria-label="Close modal">
@@ -97,12 +149,19 @@ export default function AddPantryItemModal({
           <Input
             label="Item Name"
             value={formData.name}
-            onChange={(event) => handleChange('name', event.target.value)}
+            onChange={(event) => handleNameChange(event.target.value)}
             placeholder="e.g., Olive Oil"
             required
             clearable
             autoFocus
+            list={suggestionListId}
+            hint={suggestedCategory ? `Suggested category: ${suggestedCategory.name}` : 'Start typing for common pantry suggestions'}
           />
+          <datalist id={suggestionListId}>
+            {COMMON_PANTRY_ITEMS.map((item) => (
+              <option key={item} value={item} />
+            ))}
+          </datalist>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
@@ -136,7 +195,10 @@ export default function AddPantryItemModal({
               <select
                 id="pantry-category"
                 value={formData.category}
-                onChange={(event) => handleChange('category', event.target.value)}
+                onChange={(event) => {
+                  setCategoryTouched(true);
+                  handleChange('category', event.target.value);
+                }}
                 className="h-[42px] w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
               >
                 <option value="">Uncategorized</option>
@@ -186,6 +248,6 @@ export default function AddPantryItemModal({
           </div>
         </form>
       </Card>
-    </div>
+    </Modal>
   );
 }

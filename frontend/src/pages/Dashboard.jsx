@@ -20,6 +20,7 @@ import Card from '../components/Card';
 import Skeleton from '../components/Skeleton';
 import EmptyState from '../components/EmptyState';
 import ExpiringItemsAlert from '../components/ExpiringItemsAlert';
+import Modal from '../components/Modal';
 
 const FILTER_TABS = [
   { key: 'all', label: 'All' },
@@ -444,45 +445,43 @@ export default function Dashboard() {
         </div>
       )}
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <Card className="modal-enter w-full max-w-md" accent>
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">Create New List</h2>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <Input
-                label="List Name"
-                type="text"
-                value={newListName}
-                onChange={(e) => setNewListName(e.target.value)}
-                required
-                autoFocus
-                clearable
-                placeholder="e.g., Weekly Groceries"
-              />
-              <Input
-                label="Due Date (optional)"
-                type="date"
-                value={newListDueDate}
-                onChange={(e) => setNewListDueDate(e.target.value)}
-              />
-              <div className="flex justify-end gap-3 pt-2">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setShowModal(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" size="sm">
-                  <Plus className="h-4 w-4" />
-                  Create
-                </Button>
-              </div>
-            </form>
-          </Card>
-        </div>
-      )}
+      <Modal open={showModal} onClose={() => setShowModal(false)}>
+        <Card className="modal-enter mx-auto w-full max-w-md" accent>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Create New List</h2>
+          <form onSubmit={handleCreate} className="space-y-4">
+            <Input
+              label="List Name"
+              type="text"
+              value={newListName}
+              onChange={(e) => setNewListName(e.target.value)}
+              required
+              autoFocus
+              clearable
+              placeholder="e.g., Weekly Groceries"
+            />
+            <Input
+              label="Due Date (optional)"
+              type="date"
+              value={newListDueDate}
+              onChange={(e) => setNewListDueDate(e.target.value)}
+            />
+            <div className="flex justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size="sm">
+                <Plus className="h-4 w-4" />
+                Create
+              </Button>
+            </div>
+          </form>
+        </Card>
+      </Modal>
     </div>
   );
 }
