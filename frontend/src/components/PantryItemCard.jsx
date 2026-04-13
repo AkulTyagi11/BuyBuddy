@@ -64,9 +64,22 @@ export default function PantryItemCard({
   disableAddToList = false,
 }) {
   const conditionMeta = getConditionMeta(item);
+  const daysUntilExpiry = item.days_until_expiry;
+  const isExpired = typeof daysUntilExpiry === 'number' && daysUntilExpiry < 0;
+  const isExpiringSoon = typeof daysUntilExpiry === 'number' && daysUntilExpiry >= 0 && daysUntilExpiry <= 3;
+  const isLow = item.condition === 'low';
+
+  const urgencyClass = isExpired
+    ? 'border-semantic-error/30 ring-1 ring-semantic-error/20'
+    : (isExpiringSoon || isLow)
+      ? 'border-semantic-warning/30 ring-1 ring-semantic-warning/20'
+      : '';
+
+  const expiryRowClass = isExpiringSoon && !isExpired ? 'pantry-expiring attention-pulse rounded-md px-2 py-1' : '';
+  const badgePulseClass = isExpiringSoon && !isExpired ? 'attention-pulse' : '';
 
   return (
-    <Card hover accent className="stagger-enter" padding="none">
+    <Card hover accent className={`pantry-item-enter ${urgencyClass}`} padding="none">
       <div className="p-5">
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
@@ -76,13 +89,13 @@ export default function PantryItemCard({
               {item.category_name ? ` • ${item.category_name}` : ''}
             </p>
           </div>
-          <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${conditionMeta.badgeClass}`}>
+          <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${conditionMeta.badgeClass} ${badgePulseClass}`}>
             {conditionMeta.label}
           </span>
         </div>
 
-        <div className={`mb-4 flex items-center gap-2 text-sm ${conditionMeta.expiryClass}`}>
-          <CalendarDays className="h-4 w-4" />
+        <div className={`mb-4 inline-flex items-center gap-2 text-sm ${conditionMeta.expiryClass} ${expiryRowClass}`}>
+          <CalendarDays className={`h-4 w-4 ${isExpiringSoon && !isExpired ? 'attention-pulse' : ''}`} />
           <span>{getExpiryLabel(item.days_until_expiry)}</span>
         </div>
 

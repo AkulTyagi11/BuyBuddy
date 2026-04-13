@@ -199,6 +199,44 @@ body {
   transform-origin: top right;
 }
 
+@keyframes pantrySlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pantryGlow {
+  0%,
+  100% {
+    background-color: rgba(245, 158, 11, 0);
+  }
+  50% {
+    background-color: rgba(245, 158, 11, 0.1);
+  }
+}
+
+.pantry-item-enter {
+  animation: pantrySlideIn 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--stagger-index, 0) * 45ms);
+}
+
+.pantry-expiring {
+  animation: pantryGlow 2.4s ease-in-out infinite;
+}
+
+.pantry-quick-chip {
+  transition: transform 180ms ease-out;
+}
+
+.pantry-quick-chip:hover {
+  transform: translateY(-1px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .auth-fade-up,
   .auth-float,
@@ -210,7 +248,9 @@ body {
   .skeleton,
   .empty-state-icon,
   .attention-pulse,
-  .dropdown-enter {
+  .dropdown-enter,
+  .pantry-item-enter,
+  .pantry-expiring {
     animation: none !important;
   }
 }

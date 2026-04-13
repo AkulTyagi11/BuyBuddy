@@ -38,7 +38,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border-default/75 bg-white/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/70">
+    <nav className="sticky top-0 z-50 border-b border-border-default/75 bg-white/80 backdrop-blur-md supports-backdrop-filter:bg-white/70">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center gap-8">
@@ -114,7 +114,7 @@ export default function Navbar() {
               onClick={() => setMobileOpen(!mobileOpen)}
               variant="ghost"
               size="sm"
-              className="!p-2 text-text-muted hover:text-neutral-dark"
+              className="p-2! text-text-muted hover:text-neutral-dark"
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileOpen}
             >
@@ -145,7 +145,7 @@ export default function Navbar() {
             <Button
               variant="ghost"
               size="sm"
-              className="!p-2 text-text-muted"
+              className="p-2! text-text-muted"
               onClick={() => setMobileOpen(false)}
               aria-label="Close menu"
             >

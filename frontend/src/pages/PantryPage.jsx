@@ -11,6 +11,17 @@ import AddPantryItemModal from '../components/AddPantryItemModal';
 import usePantryStore from '../stores/pantryStore';
 import useGroceryStore from '../stores/groceryStore';
 
+const QUICK_ADD_ITEMS = [
+  'Milk',
+  'Eggs',
+  'Bread',
+  'Rice',
+  'Yogurt',
+  'Onions',
+  'Tomatoes',
+  'Atta',
+];
+
 function PantryLoadingSkeleton() {
   return (
     <div className="space-y-6">
@@ -33,10 +44,10 @@ function PantryLoadingSkeleton() {
 
       <Card accent className="space-y-4">
         <div className="grid gap-3 lg:grid-cols-4">
-          <Skeleton className="h-[42px] w-full" />
-          <Skeleton className="h-[42px] w-full" />
-          <Skeleton className="h-[42px] w-full" />
-          <Skeleton className="h-[42px] w-full" />
+          <Skeleton className="h-10.5 w-full" />
+          <Skeleton className="h-10.5 w-full" />
+          <Skeleton className="h-10.5 w-full" />
+          <Skeleton className="h-10.5 w-full" />
         </div>
       </Card>
 
@@ -85,6 +96,7 @@ export default function PantryPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [createInitialValues, setCreateInitialValues] = useState(null);
 
   useEffect(() => {
     fetchItems();
@@ -158,6 +170,7 @@ export default function PantryPage() {
       }
       setModalOpen(false);
       setEditingItem(null);
+      setCreateInitialValues(null);
     } catch {
       toast.error('Failed to save pantry item.');
     } finally {
@@ -198,6 +211,12 @@ export default function PantryPage() {
     }
   };
 
+  const openCreateModal = (name = '') => {
+    setEditingItem(null);
+    setCreateInitialValues(name ? { name } : null);
+    setModalOpen(true);
+  };
+
   if (loading && items.length === 0) {
     return <PantryLoadingSkeleton />;
   }
@@ -211,15 +230,32 @@ export default function PantryPage() {
         </div>
 
         <Button
-          onClick={() => {
-            setEditingItem(null);
-            setModalOpen(true);
-          }}
+          onClick={() => openCreateModal()}
         >
           <Package className="h-4 w-4" />
           Add Pantry Item
         </Button>
       </div>
+
+      <Card accent className="space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-medium text-neutral-dark">Quick Add Common Items</p>
+          <p className="text-xs text-text-muted">Tap to prefill</p>
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {QUICK_ADD_ITEMS.map((itemName) => (
+            <Button
+              key={itemName}
+              size="sm"
+              variant="outline"
+              className="shrink-0 pantry-quick-chip"
+              onClick={() => openCreateModal(itemName)}
+            >
+              + {itemName}
+            </Button>
+          ))}
+        </div>
+      </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card accent>
@@ -257,7 +293,7 @@ export default function PantryPage() {
               id="pantry-category-filter"
               value={categoryFilter}
               onChange={(event) => setCategoryFilter(event.target.value)}
-              className="h-[42px] w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
+              className="h-10.5 w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
             >
               <option value="all">All categories</option>
               {categories.map((category) => (
@@ -272,7 +308,7 @@ export default function PantryPage() {
               id="pantry-condition-filter"
               value={conditionFilter}
               onChange={(event) => setConditionFilter(event.target.value)}
-              className="h-[42px] w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
+              className="h-10.5 w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
             >
               <option value="all">All conditions</option>
               <option value="stock">In stock</option>
@@ -288,7 +324,7 @@ export default function PantryPage() {
               id="pantry-sort"
               value={sortBy}
               onChange={(event) => setSortBy(event.target.value)}
-              className="h-[42px] w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
+              className="h-10.5 w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
             >
               <option value="added">Recently added</option>
               <option value="name">Name</option>
@@ -303,7 +339,7 @@ export default function PantryPage() {
               id="pantry-target-list"
               value={targetListId}
               onChange={(event) => setTargetListId(event.target.value)}
-              className="h-[42px] w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
+              className="h-10.5 w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
             >
               {lists.length === 0 ? <option value="">No list available</option> : null}
               {lists.map((list) => (
@@ -323,7 +359,7 @@ export default function PantryPage() {
             <Button
               size="sm"
               variant={viewMode === 'grid' ? 'primary' : 'secondary'}
-              className="!px-3"
+              className="px-3!"
               onClick={() => setViewMode('grid')}
               aria-label="Grid view"
             >
@@ -332,7 +368,7 @@ export default function PantryPage() {
             <Button
               size="sm"
               variant={viewMode === 'list' ? 'primary' : 'secondary'}
-              className="!px-3"
+              className="px-3!"
               onClick={() => setViewMode('list')}
               aria-label="List view"
             >
@@ -349,10 +385,7 @@ export default function PantryPage() {
           description="Add pantry items to track inventory and quickly move them into shopping lists."
           action={(
             <Button
-              onClick={() => {
-                setEditingItem(null);
-                setModalOpen(true);
-              }}
+              onClick={() => openCreateModal()}
             >
               <Package className="h-4 w-4" />
               Add Pantry Item
@@ -390,6 +423,7 @@ export default function PantryPage() {
                 onMarkLow={() => handleMarkLow(item)}
                 onEdit={() => {
                   setEditingItem(item);
+                  setCreateInitialValues(null);
                   setModalOpen(true);
                 }}
                 onDelete={() => handleDelete(item)}
@@ -404,10 +438,11 @@ export default function PantryPage() {
           onClose={() => {
             setModalOpen(false);
             setEditingItem(null);
+            setCreateInitialValues(null);
           }}
           onSubmit={handleAddOrUpdate}
           categories={categories}
-          initialValues={editingItem}
+          initialValues={editingItem || createInitialValues}
           loading={saving}
         />
       ) : null}

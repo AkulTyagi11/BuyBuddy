@@ -33,7 +33,7 @@ export default function Modal({
   }
 
   return createPortal(
-    <div className={`fixed inset-0 z-[90] flex items-center justify-center bg-neutral-dark/55 p-4 backdrop-blur-[1px] ${className}`} role="dialog" aria-modal="true">
+    <div className={`fixed inset-0 z-90 flex items-center justify-center bg-neutral-dark/55 p-4 backdrop-blur-[1px] ${className}`} role="dialog" aria-modal="true">
       {closeOnBackdrop ? (
         <button
           type="button"
