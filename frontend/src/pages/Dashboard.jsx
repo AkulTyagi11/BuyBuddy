@@ -61,11 +61,11 @@ function DashboardLoadingSkeleton() {
         <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto] lg:items-end">
           <div>
             <Skeleton className="mb-2 h-4 w-16" />
-            <Skeleton className="h-10.5 w-full" />
+            <Skeleton className="h-[42px] w-full" />
           </div>
           <div>
             <Skeleton className="mb-2 h-4 w-12" />
-            <Skeleton className="h-10.5 w-44" />
+            <Skeleton className="h-[42px] w-44" />
           </div>
           <div>
             <Skeleton className="mb-2 h-4 w-12" />
@@ -289,7 +289,7 @@ export default function Dashboard() {
                 id="sortBy"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="h-10.5 min-w-44 rounded-lg border border-border-default bg-white pl-9 pr-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
+                className="h-[42px] min-w-44 rounded-lg border border-border-default bg-white pl-9 pr-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
               >
                 <option value="recent">Most Recent</option>
                 <option value="name">Name</option>
@@ -305,7 +305,7 @@ export default function Dashboard() {
               <Button
                 size="sm"
                 variant={viewMode === 'grid' ? 'primary' : 'secondary'}
-                className="px-3!"
+                className="!px-3"
                 onClick={() => setViewMode('grid')}
                 aria-label="Grid view"
               >
@@ -314,7 +314,7 @@ export default function Dashboard() {
               <Button
                 size="sm"
                 variant={viewMode === 'list' ? 'primary' : 'secondary'}
-                className="px-3!"
+                className="!px-3"
                 onClick={() => setViewMode('list')}
                 aria-label="List view"
               >

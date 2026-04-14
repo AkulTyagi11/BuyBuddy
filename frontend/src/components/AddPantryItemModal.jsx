@@ -140,7 +140,7 @@ export default function AddPantryItemModal({
       <Card className="modal-enter mx-auto w-full max-w-lg" accent>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-neutral-dark">{title}</h2>
-          <Button variant="ghost" size="sm" className="p-2!" onClick={onClose} aria-label="Close modal">
+          <Button variant="ghost" size="sm" className="!p-2" onClick={onClose} aria-label="Close modal">
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -180,7 +180,7 @@ export default function AddPantryItemModal({
                 id="pantry-unit"
                 value={formData.unit}
                 onChange={(event) => handleChange('unit', event.target.value)}
-                className="h-10.5 w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
+                className="h-[42px] w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
               >
                 {UNIT_OPTIONS.map((unit) => (
                   <option key={unit.value} value={unit.value}>{unit.label}</option>
@@ -199,7 +199,7 @@ export default function AddPantryItemModal({
                   setCategoryTouched(true);
                   handleChange('category', event.target.value);
                 }}
-                className="h-10.5 w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
+                className="h-[42px] w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
               >
                 <option value="">Uncategorized</option>
                 {categories.map((category) => (
@@ -222,7 +222,7 @@ export default function AddPantryItemModal({
               id="pantry-condition"
               value={formData.condition}
               onChange={(event) => handleChange('condition', event.target.value)}
-              className="h-10.5 w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
+              className="h-[42px] w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
             >
               {CONDITION_OPTIONS.map((condition) => (
                 <option key={condition.value} value={condition.value}>{condition.label}</option>

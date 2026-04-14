@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { AlertTriangle, CalendarDays, Pencil, PlusCircle, Trash2 } from 'lucide-react';
 import Button from './Button';
 import Card from './Card';
@@ -63,6 +64,13 @@ export default function PantryItemCard({
   onDelete,
   disableAddToList = false,
 }) {
+  const gestureStateRef = useRef({
+    startX: 0,
+    startY: 0,
+    longPressTriggered: false,
+    timer: null,
+  });
+
   const conditionMeta = getConditionMeta(item);
   const daysUntilExpiry = item.days_until_expiry;
   const isExpired = typeof daysUntilExpiry === 'number' && daysUntilExpiry < 0;
@@ -78,8 +86,78 @@ export default function PantryItemCard({
   const expiryRowClass = isExpiringSoon && !isExpired ? 'pantry-expiring attention-pulse rounded-md px-2 py-1' : '';
   const badgePulseClass = isExpiringSoon && !isExpired ? 'attention-pulse' : '';
 
+  useEffect(() => {
+    const gestureState = gestureStateRef.current;
+    return () => {
+      if (gestureState.timer) {
+        clearTimeout(gestureState.timer);
+      }
+    };
+  }, []);
+
+  const clearLongPressTimer = () => {
+    if (gestureStateRef.current.timer) {
+      clearTimeout(gestureStateRef.current.timer);
+      gestureStateRef.current.timer = null;
+    }
+  };
+
+  const handleTouchStart = (event) => {
+    if (typeof event.target.closest === 'function' && event.target.closest('button')) {
+      return;
+    }
+
+    const touch = event.touches[0];
+    gestureStateRef.current.startX = touch.clientX;
+    gestureStateRef.current.startY = touch.clientY;
+    gestureStateRef.current.longPressTriggered = false;
+
+    clearLongPressTimer();
+    gestureStateRef.current.timer = setTimeout(() => {
+      gestureStateRef.current.longPressTriggered = true;
+      if (!isLow && !isExpired) {
+        onMarkLow();
+      }
+    }, 650);
+  };
+
+  const handleTouchMove = (event) => {
+    const touch = event.touches[0];
+    const deltaX = Math.abs(touch.clientX - gestureStateRef.current.startX);
+    const deltaY = Math.abs(touch.clientY - gestureStateRef.current.startY);
+
+    if (deltaX > 12 || deltaY > 12) {
+      clearLongPressTimer();
+    }
+  };
+
+  const handleTouchEnd = (event) => {
+    clearLongPressTimer();
+
+    if (gestureStateRef.current.longPressTriggered || !event.changedTouches?.length) {
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - gestureStateRef.current.startX;
+    const deltaY = Math.abs(touch.clientY - gestureStateRef.current.startY);
+
+    // Swipe left with low vertical drift triggers delete flow.
+    if (deltaX < -120 && deltaY < 36) {
+      onDelete();
+    }
+  };
+
   return (
-    <Card hover accent className={`pantry-item-enter ${urgencyClass}`} padding="none">
+    <Card
+      hover
+      accent
+      className={`pantry-item-enter ${urgencyClass}`}
+      padding="none"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className="p-5">
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
@@ -102,6 +180,10 @@ export default function PantryItemCard({
         {item.notes ? (
           <p className="mb-4 rounded-lg bg-neutral-light px-3 py-2 text-sm text-text-muted">{item.notes}</p>
         ) : null}
+
+        <p className="mb-3 text-xs text-text-muted sm:hidden">
+          Tip: Long-press to mark low, swipe left to delete.
+        </p>
 
         <div className="flex flex-wrap gap-2">
           <Button size="sm" onClick={onAddToList} disabled={disableAddToList}>
