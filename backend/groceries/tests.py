@@ -5,7 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import Category, GroceryItem, GroceryList, Pantry, PantryItem
+from .models import Category, GroceryItem, GroceryList, Pantry, PantryItem, VoiceSession
 
 
 User = get_user_model()
@@ -180,3 +180,113 @@ class PantryApiTests(APITestCase):
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		returned_names = {item['name'] for item in response.data}
 		self.assertSetEqual(returned_names, {'Soon', 'Today'})
+
+
+class VoiceApiTests(APITestCase):
+	def setUp(self):
+		self.user = User.objects.create_user(username='voice_user', password='pass12345')
+		self.other_user = User.objects.create_user(username='voice_other', password='pass12345')
+		self.own_list = GroceryList.objects.create(name='Voice List', owner=self.user)
+		self.other_list = GroceryList.objects.create(name='Other List', owner=self.other_user)
+		self.client.force_authenticate(user=self.user)
+
+		self.vegetables = Category.objects.create(name='Vegetables')
+		self.dairy = Category.objects.create(name='Dairy')
+
+	def test_voice_process_requires_transcript(self):
+		response = self.client.post(reverse('voice-process'), {'transcript': ''}, format='json')
+
+		self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+		self.assertEqual(response.data['detail'], 'transcript is required.')
+
+	def test_voice_process_creates_session_with_parsed_items(self):
+		response = self.client.post(
+			reverse('voice-process'),
+			{'transcript': '2 kg tomatoes and 1 milk', 'list_id': self.own_list.id},
+			format='json',
+		)
+
+		self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+		self.assertIn('parsed_items', response.data)
+		self.assertEqual(len(response.data['parsed_items']), 2)
+		self.assertFalse(response.data['confirmed'])
+		self.assertTrue(VoiceSession.objects.filter(pk=response.data['id'], user=self.user).exists())
+
+	def test_voice_session_list_returns_only_current_user_sessions(self):
+		VoiceSession.objects.create(
+			user=self.user,
+			grocery_list=self.own_list,
+			transcript='milk',
+			parsed_items=[{'name': 'Milk', 'quantity': 1, 'unit': 'l', 'category': self.dairy.id}],
+		)
+		VoiceSession.objects.create(
+			user=self.other_user,
+			grocery_list=self.other_list,
+			transcript='hidden',
+			parsed_items=[{'name': 'Hidden', 'quantity': 1, 'unit': 'pcs', 'category': None}],
+		)
+
+		response = self.client.get(reverse('voice-session-list'))
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertEqual(len(response.data), 1)
+		self.assertEqual(response.data[0]['transcript'], 'milk')
+
+	def test_voice_confirm_adds_items_and_marks_session_confirmed(self):
+		session = VoiceSession.objects.create(
+			user=self.user,
+			transcript='2 tomatoes and milk',
+			parsed_items=[
+				{'name': 'Tomatoes', 'quantity': 2, 'unit': 'kg', 'category': self.vegetables.id},
+				{'name': 'Milk', 'quantity': 1, 'unit': 'l', 'category': self.dairy.id},
+			],
+		)
+
+		response = self.client.post(
+			reverse('voice-session-confirm', kwargs={'pk': session.pk}),
+			{'list_id': self.own_list.id},
+			format='json',
+		)
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertEqual(response.data['status'], 'items_added')
+		self.assertEqual(response.data['count'], 2)
+
+		session.refresh_from_db()
+		self.assertTrue(session.confirmed)
+		self.assertEqual(session.grocery_list_id, self.own_list.id)
+
+		self.assertTrue(GroceryItem.objects.filter(grocery_list=self.own_list, name='Tomatoes').exists())
+		self.assertTrue(GroceryItem.objects.filter(grocery_list=self.own_list, name='Milk').exists())
+
+	def test_voice_confirm_forbidden_for_inaccessible_list(self):
+		session = VoiceSession.objects.create(
+			user=self.user,
+			transcript='bread',
+			parsed_items=[{'name': 'Bread', 'quantity': 1, 'unit': 'pack', 'category': None}],
+		)
+
+		response = self.client.post(
+			reverse('voice-session-confirm', kwargs={'pk': session.pk}),
+			{'list_id': self.other_list.id},
+			format='json',
+		)
+
+		self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+		self.assertFalse(GroceryItem.objects.filter(grocery_list=self.other_list, name='Bread').exists())
+
+	def test_voice_confirm_requires_list_when_session_has_no_list(self):
+		session = VoiceSession.objects.create(
+			user=self.user,
+			transcript='eggs',
+			parsed_items=[{'name': 'Eggs', 'quantity': 12, 'unit': 'pcs', 'category': None}],
+		)
+
+		response = self.client.post(
+			reverse('voice-session-confirm', kwargs={'pk': session.pk}),
+			{},
+			format='json',
+		)
+
+		self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+		self.assertEqual(response.data['detail'], 'A valid list is required to confirm items.')

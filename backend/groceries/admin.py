@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, GroceryList, GroceryItem, Pantry, PantryItem
+from .models import Category, GroceryList, GroceryItem, Pantry, PantryItem, VoiceSession
 
 
 @admin.register(Category)
@@ -30,3 +30,10 @@ class PantryItemAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'quantity', 'unit', 'condition', 'pantry', 'category', 'expiry_date')
     list_filter = ('condition', 'category', 'unit')
     search_fields = ('name', 'pantry__user__username')
+
+
+@admin.register(VoiceSession)
+class VoiceSessionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'grocery_list', 'confirmed', 'created_at')
+    list_filter = ('confirmed', 'created_at')
+    search_fields = ('user__username', 'transcript')

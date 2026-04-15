@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 
-from .models import Category, GroceryList, GroceryItem, Pantry, PantryItem
+from .models import Category, GroceryList, GroceryItem, Pantry, PantryItem, VoiceSession
 from .serializers import (
     CategorySerializer,
     GroceryListSerializer,
@@ -14,7 +14,9 @@ from .serializers import (
     GroceryItemSerializer,
     PantrySerializer,
     PantryItemSerializer,
+    VoiceSessionSerializer,
 )
+from .services.speech_service import parse_grocery_items
 
 
 class CategoryListView(generics.ListAPIView):
@@ -108,6 +110,13 @@ class PantryItemDetailView(generics.RetrieveUpdateDestroyAPIView):
         return PantryItem.objects.filter(pantry__user=self.request.user)
 
 
+class VoiceSessionListView(generics.ListAPIView):
+    serializer_class = VoiceSessionSerializer
+
+    def get_queryset(self):
+        return VoiceSession.objects.filter(user=self.request.user)
+
+
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def toggle_item_purchased(request, pk):
@@ -188,3 +197,89 @@ def pantry_expiring_items(request):
     )
     serializer = PantryItemSerializer(items, many=True)
     return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def voice_process(request):
+    transcript = (request.data.get('transcript') or '').strip()
+    if not transcript:
+        return Response(
+            {'detail': 'transcript is required.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    list_id = request.data.get('list_id')
+    grocery_list = None
+    if list_id:
+        grocery_list = GroceryList.objects.filter(
+            Q(owner=request.user) | Q(shared_with=request.user),
+            pk=list_id,
+        ).first()
+        if not grocery_list:
+            raise PermissionDenied('You do not have access to this list.')
+
+    categories = list(Category.objects.all())
+    parsed_items = parse_grocery_items(transcript, categories)
+
+    session = VoiceSession.objects.create(
+        user=request.user,
+        grocery_list=grocery_list,
+        transcript=transcript,
+        parsed_items=parsed_items,
+        confirmed=False,
+    )
+    serializer = VoiceSessionSerializer(session)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def voice_session_confirm(request, pk):
+    session = VoiceSession.objects.filter(pk=pk, user=request.user).first()
+    if not session:
+        return Response({'detail': 'Voice session not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    list_id = request.data.get('list_id')
+    grocery_list = session.grocery_list
+    if list_id:
+        grocery_list = GroceryList.objects.filter(
+            Q(owner=request.user) | Q(shared_with=request.user),
+            pk=list_id,
+        ).first()
+        if not grocery_list:
+            raise PermissionDenied('You do not have access to this list.')
+
+    if not grocery_list:
+        return Response({'detail': 'A valid list is required to confirm items.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    items_data = request.data.get('items') or session.parsed_items or []
+    created_count = 0
+
+    for item in items_data:
+        name = (item.get('name') or '').strip()
+        if not name:
+            continue
+
+        quantity = item.get('quantity') or 1
+        unit = item.get('unit') or 'pcs'
+        category_id = item.get('category')
+
+        category = None
+        if category_id:
+            category = Category.objects.filter(pk=category_id).first()
+
+        GroceryItem.objects.create(
+            grocery_list=grocery_list,
+            name=name,
+            quantity=quantity,
+            unit=unit,
+            category=category,
+        )
+        created_count += 1
+
+    session.confirmed = True
+    session.grocery_list = grocery_list
+    session.save(update_fields=['confirmed', 'grocery_list'])
+
+    return Response({'status': 'items_added', 'count': created_count}, status=status.HTTP_200_OK)

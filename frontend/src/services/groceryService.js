@@ -55,3 +55,20 @@ export const getCategories = async () => {
   const { data } = await api.get('/categories/');
   return data;
 };
+
+// Voice sessions
+export const processVoiceTranscript = async ({ transcript, listId }) => {
+  const { data } = await api.post('/voice/process/', {
+    transcript,
+    list_id: listId,
+  });
+  return data;
+};
+
+export const confirmVoiceSession = async ({ sessionId, listId, items }) => {
+  const { data } = await api.post(`/voice/sessions/${sessionId}/confirm/`, {
+    list_id: listId,
+    items,
+  });
+  return data;
+};

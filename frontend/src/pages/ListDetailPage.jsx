@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, Plus, Trash2, Check, Pencil, ShoppingBasket,
+    ArrowLeft, Plus, Trash2, Check, Pencil, ShoppingBasket, Mic, Loader2, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useGroceryStore from '../stores/groceryStore';
@@ -10,6 +10,7 @@ import Input from '../components/Input';
 import Card from '../components/Card';
 import Skeleton from '../components/Skeleton';
 import EmptyState from '../components/EmptyState';
+import Modal from '../components/Modal';
 
 const UNIT_OPTIONS = [
     { value: 'pcs', label: 'Pieces' },
@@ -23,6 +24,15 @@ const UNIT_OPTIONS = [
     { value: 'can', label: 'Can' },
     { value: 'bag', label: 'Bag' },
 ];
+
+function normalizeVoiceItems(rawItems = []) {
+    return rawItems.map((item) => ({
+        name: item.name || '',
+        quantity: String(item.quantity ?? 1),
+        unit: item.unit || 'pcs',
+        category: item.category ? String(item.category) : '',
+    }));
+}
 
 function ItemForm({ onSubmit, submitLabel, form, setForm, categories, onCancel }) {
     return (
@@ -196,6 +206,7 @@ export default function ListDetailPage() {
         currentList, items, categories, loading,
         fetchList, fetchCategories,
         createItem, updateItem, deleteItem, toggleItem,
+        processVoiceTranscript, confirmVoiceSession,
     } = useGroceryStore();
 
     const [showAddForm, setShowAddForm] = useState(false);
@@ -203,11 +214,30 @@ export default function ListDetailPage() {
     const [form, setForm] = useState({
         name: '', quantity: '1', unit: 'pcs', category: '', price: '',
     });
+    const [voiceSupported, setVoiceSupported] = useState(false);
+    const [voiceListening, setVoiceListening] = useState(false);
+    const [voiceProcessing, setVoiceProcessing] = useState(false);
+    const [voiceModalOpen, setVoiceModalOpen] = useState(false);
+    const [voiceSessionId, setVoiceSessionId] = useState(null);
+    const [voiceTranscript, setVoiceTranscript] = useState('');
+    const [voiceItems, setVoiceItems] = useState([]);
+    const recognitionRef = useRef(null);
 
     useEffect(() => {
         fetchList(id);
         fetchCategories();
     }, [id, fetchList, fetchCategories]);
+
+    useEffect(() => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        setVoiceSupported(Boolean(SpeechRecognition));
+
+        return () => {
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
+            }
+        };
+    }, []);
 
     const resetForm = () => {
         setForm({ name: '', quantity: '1', unit: 'pcs', category: '', price: '' });
@@ -280,6 +310,164 @@ export default function ListDetailPage() {
         }
     };
 
+    const resetVoiceModal = () => {
+        setVoiceModalOpen(false);
+        setVoiceSessionId(null);
+        setVoiceTranscript('');
+        setVoiceItems([]);
+    };
+
+    const handleVoiceCapture = () => {
+        if (!voiceSupported) {
+            toast.error('Voice capture is not supported in this browser.');
+            return;
+        }
+
+        if (voiceListening && recognitionRef.current) {
+            recognitionRef.current.stop();
+            return;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            toast.error('Voice capture is not supported in this browser.');
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+            setVoiceListening(true);
+        };
+
+        recognition.onerror = (event) => {
+            if (event.error === 'no-speech') {
+                toast.error('No speech detected. Please try again.');
+                return;
+            }
+            if (event.error === 'not-allowed') {
+                toast.error('Microphone permission was denied.');
+                return;
+            }
+            toast.error('Voice capture failed. Please try again.');
+        };
+
+        recognition.onresult = async (event) => {
+            const transcript = Array.from(event.results)
+                .map((result) => result[0]?.transcript || '')
+                .join(' ')
+                .trim();
+
+            if (!transcript) {
+                toast.error('Could not recognize any grocery items.');
+                return;
+            }
+
+            setVoiceProcessing(true);
+            try {
+                const session = await processVoiceTranscript({
+                    transcript,
+                    listId: Number(id),
+                });
+
+                const parsedItems = normalizeVoiceItems(session.parsed_items || []);
+                if (parsedItems.length === 0) {
+                    toast.error('No grocery items were recognized.');
+                    return;
+                }
+
+                setVoiceSessionId(session.id);
+                setVoiceTranscript(session.transcript || transcript);
+                setVoiceItems(parsedItems);
+                setVoiceModalOpen(true);
+                toast.success('Review and confirm voice items.');
+            } catch {
+                toast.error('Failed to process voice input.');
+            } finally {
+                setVoiceProcessing(false);
+            }
+        };
+
+        recognition.onend = () => {
+            setVoiceListening(false);
+            recognitionRef.current = null;
+        };
+
+        recognitionRef.current = recognition;
+        recognition.start();
+    };
+
+    const handleVoiceItemChange = (index, field, value) => {
+        setVoiceItems((prevItems) => prevItems.map((item, itemIndex) => {
+            if (itemIndex !== index) {
+                return item;
+            }
+            return {
+                ...item,
+                [field]: value,
+            };
+        }));
+    };
+
+    const handleVoiceItemRemove = (index) => {
+        setVoiceItems((prevItems) => prevItems.filter((_, itemIndex) => itemIndex !== index));
+    };
+
+    const handleVoiceItemAdd = () => {
+        setVoiceItems((prevItems) => ([
+            ...prevItems,
+            {
+                name: '',
+                quantity: '1',
+                unit: 'pcs',
+                category: '',
+            },
+        ]));
+    };
+
+    const handleVoiceConfirm = async () => {
+        if (!voiceSessionId) {
+            toast.error('No voice session selected.');
+            return;
+        }
+
+        const sanitizedItems = voiceItems
+            .map((item) => ({
+                name: item.name.trim(),
+                quantity: Number(item.quantity) > 0 ? Number(item.quantity) : 1,
+                unit: item.unit || 'pcs',
+                category: item.category ? Number(item.category) : null,
+            }))
+            .filter((item) => item.name);
+
+        if (sanitizedItems.length === 0) {
+            toast.error('Add at least one valid item to continue.');
+            return;
+        }
+
+        setVoiceProcessing(true);
+        try {
+            const result = await confirmVoiceSession({
+                sessionId: voiceSessionId,
+                listId: Number(id),
+                items: sanitizedItems,
+            });
+            await fetchList(id);
+            resetVoiceModal();
+
+            const count = result?.count ?? sanitizedItems.length;
+            toast.success(`Added ${count} item${count === 1 ? '' : 's'} from voice.`);
+        } catch {
+            toast.error('Failed to confirm voice items.');
+        } finally {
+            setVoiceProcessing(false);
+        }
+    };
+
     if (loading && !currentList) {
         return <ListDetailSkeleton />;
     }
@@ -334,16 +522,31 @@ export default function ListDetailPage() {
                             {currentList.due_date && ` · Due ${new Date(currentList.due_date).toLocaleDateString()}`}
                         </p>
                     </div>
-                    <Button
-                        onClick={() => {
-                            resetForm();
-                            setShowAddForm(true);
-                        }}
-                    >
-                        <Plus className="w-4 h-4" />
-                        Add Item
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="secondary"
+                            onClick={handleVoiceCapture}
+                            disabled={voiceProcessing}
+                        >
+                            {voiceProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
+                            {voiceListening ? 'Stop Listening' : 'Voice Add'}
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                resetForm();
+                                setShowAddForm(true);
+                            }}
+                        >
+                            <Plus className="w-4 h-4" />
+                            Add Item
+                        </Button>
+                    </div>
                 </div>
+                {!voiceSupported && (
+                    <p className="mt-2 text-xs text-amber-700">
+                        Voice input is unavailable in this browser. You can still add items manually.
+                    </p>
+                )}
 
                 {/* Progress bar */}
                 <div className="mt-4 w-full bg-gray-100 rounded-full h-2.5">
@@ -365,6 +568,113 @@ export default function ListDetailPage() {
                     <ItemForm onSubmit={handleUpdate} submitLabel="Update Item" form={form} setForm={setForm} categories={categories} onCancel={resetForm} />
                 </div>
             )}
+
+            <Modal
+                open={voiceModalOpen}
+                onClose={() => {
+                    if (!voiceProcessing) {
+                        resetVoiceModal();
+                    }
+                }}
+            >
+                <Card className="mx-auto max-w-3xl" padding="md" accent>
+                    <div className="mb-4 flex items-start justify-between gap-4">
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-900">Review Voice Items</h2>
+                            <p className="mt-1 text-xs text-gray-500">
+                                {voiceTranscript ? `"${voiceTranscript}"` : 'Update recognized items before confirming.'}
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={resetVoiceModal}
+                            className="rounded p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+                            aria-label="Close voice review"
+                            disabled={voiceProcessing}
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
+
+                    <div className="max-h-[55vh] space-y-3 overflow-y-auto pr-1">
+                        {voiceItems.map((item, index) => (
+                            <div key={`voice-item-${index}`} className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[2fr_1fr_1fr_1.5fr_auto]">
+                                    <Input
+                                        label="Name"
+                                        value={item.name}
+                                        onChange={(event) => handleVoiceItemChange(index, 'name', event.target.value)}
+                                        inputClassName="py-2 text-sm"
+                                    />
+                                    <Input
+                                        label="Qty"
+                                        type="number"
+                                        min="0.01"
+                                        step="0.01"
+                                        value={item.quantity}
+                                        onChange={(event) => handleVoiceItemChange(index, 'quantity', event.target.value)}
+                                        inputClassName="py-2 text-sm"
+                                    />
+                                    <label className="block text-sm font-medium text-neutral-dark">
+                                        Unit
+                                        <select
+                                            value={item.unit}
+                                            onChange={(event) => handleVoiceItemChange(index, 'unit', event.target.value)}
+                                            className="mt-1 w-full rounded-lg border border-border-default bg-white px-3 py-2 text-sm outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
+                                        >
+                                            {UNIT_OPTIONS.map((unitOption) => (
+                                                <option key={unitOption.value} value={unitOption.value}>
+                                                    {unitOption.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                    <label className="block text-sm font-medium text-neutral-dark">
+                                        Category
+                                        <select
+                                            value={item.category}
+                                            onChange={(event) => handleVoiceItemChange(index, 'category', event.target.value)}
+                                            className="mt-1 w-full rounded-lg border border-border-default bg-white px-3 py-2 text-sm outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
+                                        >
+                                            <option value="">No category</option>
+                                            {categories.map((category) => (
+                                                <option key={category.id} value={category.id}>{category.name}</option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                    <div className="flex items-end">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleVoiceItemRemove(index)}
+                                            className="text-semantic-error hover:bg-red-50"
+                                            aria-label="Remove voice item"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                        <Button variant="outline" size="sm" onClick={handleVoiceItemAdd} disabled={voiceProcessing}>
+                            <Plus className="h-4 w-4" />
+                            Add Row
+                        </Button>
+
+                        <div className="flex items-center gap-2">
+                            <Button variant="secondary" size="sm" onClick={resetVoiceModal} disabled={voiceProcessing}>
+                                Cancel
+                            </Button>
+                            <Button size="sm" onClick={handleVoiceConfirm} loading={voiceProcessing}>
+                                Confirm & Add
+                            </Button>
+                        </div>
+                    </div>
+                </Card>
+            </Modal>
 
             {/* Items */}
             {items.length === 0 ? (

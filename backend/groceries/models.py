@@ -127,3 +127,28 @@ class PantryItem(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class VoiceSession(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='voice_sessions',
+    )
+    grocery_list = models.ForeignKey(
+        GroceryList,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='voice_sessions',
+    )
+    transcript = models.TextField()
+    parsed_items = models.JSONField(default=list)
+    confirmed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"VoiceSession({self.user}, confirmed={self.confirmed})"

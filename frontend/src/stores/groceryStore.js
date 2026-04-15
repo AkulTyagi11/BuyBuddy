@@ -96,6 +96,17 @@ const useGroceryStore = create((set) => ({
       // ignore
     }
   },
+
+  // Voice sessions
+  processVoiceTranscript: async ({ transcript, listId }) => {
+    const session = await groceryService.processVoiceTranscript({ transcript, listId });
+    return session;
+  },
+
+  confirmVoiceSession: async ({ sessionId, listId, items }) => {
+    const result = await groceryService.confirmVoiceSession({ sessionId, listId, items });
+    return result;
+  },
 }));
 
 export default useGroceryStore;

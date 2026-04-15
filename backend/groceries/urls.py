@@ -13,6 +13,9 @@ from .views import (
     pantry_item_mark_low,
     pantry_item_to_list,
     pantry_expiring_items,
+    voice_process,
+    voice_session_confirm,
+    VoiceSessionListView,
 )
 
 urlpatterns = [
@@ -28,4 +31,7 @@ urlpatterns = [
     path('pantry/items/<int:pk>/mark-low/', pantry_item_mark_low, name='pantry-item-mark-low'),
     path('pantry/items/<int:pk>/to-list/', pantry_item_to_list, name='pantry-item-to-list'),
     path('pantry/expiring/', pantry_expiring_items, name='pantry-expiring-items'),
+    path('voice/process/', voice_process, name='voice-process'),
+    path('voice/sessions/', VoiceSessionListView.as_view(), name='voice-session-list'),
+    path('voice/sessions/<int:pk>/confirm/', voice_session_confirm, name='voice-session-confirm'),
 ]

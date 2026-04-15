@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from datetime import date
 
-from .models import Category, GroceryList, GroceryItem, Pantry, PantryItem
+from .models import Category, GroceryList, GroceryItem, Pantry, PantryItem, VoiceSession
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -88,3 +88,10 @@ class PantrySerializer(serializers.ModelSerializer):
         model = Pantry
         fields = ('id', 'user', 'items', 'created_at', 'updated_at')
         read_only_fields = ('user', 'created_at', 'updated_at')
+
+
+class VoiceSessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VoiceSession
+        fields = ('id', 'user', 'grocery_list', 'transcript', 'parsed_items', 'confirmed', 'created_at')
+        read_only_fields = ('user', 'confirmed', 'created_at')
