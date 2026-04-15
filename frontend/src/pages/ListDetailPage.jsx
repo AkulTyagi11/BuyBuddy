@@ -11,6 +11,7 @@ import Card from '../components/Card';
 import Skeleton from '../components/Skeleton';
 import EmptyState from '../components/EmptyState';
 import Modal from '../components/Modal';
+import VoiceHistoryPanel from '../components/VoiceHistoryPanel';
 
 const UNIT_OPTIONS = [
     { value: 'pcs', label: 'Pieces' },
@@ -206,7 +207,7 @@ export default function ListDetailPage() {
         currentList, items, categories, loading,
         fetchList, fetchCategories,
         createItem, updateItem, deleteItem, toggleItem,
-        processVoiceTranscript, confirmVoiceSession,
+        processVoiceTranscript, confirmVoiceSession, fetchVoiceSessions,
     } = useGroceryStore();
 
     const [showAddForm, setShowAddForm] = useState(false);
@@ -221,12 +222,33 @@ export default function ListDetailPage() {
     const [voiceSessionId, setVoiceSessionId] = useState(null);
     const [voiceTranscript, setVoiceTranscript] = useState('');
     const [voiceItems, setVoiceItems] = useState([]);
+    const [voiceSessions, setVoiceSessions] = useState([]);
+    const [voiceHistoryLoading, setVoiceHistoryLoading] = useState(false);
     const recognitionRef = useRef(null);
 
     useEffect(() => {
         fetchList(id);
         fetchCategories();
     }, [id, fetchList, fetchCategories]);
+
+    useEffect(() => {
+        const loadVoiceHistory = async () => {
+            setVoiceHistoryLoading(true);
+            try {
+                const allSessions = await fetchVoiceSessions();
+                const listSessions = (allSessions || []).filter(
+                    (session) => Number(session.grocery_list) === Number(id)
+                );
+                setVoiceSessions(listSessions.slice(0, 6));
+            } catch {
+                toast.error('Failed to load voice history.');
+            } finally {
+                setVoiceHistoryLoading(false);
+            }
+        };
+
+        loadVoiceHistory();
+    }, [id, fetchVoiceSessions]);
 
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -384,6 +406,7 @@ export default function ListDetailPage() {
                 setVoiceTranscript(session.transcript || transcript);
                 setVoiceItems(parsedItems);
                 setVoiceModalOpen(true);
+                setVoiceSessions((prevSessions) => [session, ...prevSessions].slice(0, 6));
                 toast.success('Review and confirm voice items.');
             } catch {
                 toast.error('Failed to process voice input.');
@@ -458,6 +481,11 @@ export default function ListDetailPage() {
             });
             await fetchList(id);
             resetVoiceModal();
+            setVoiceSessions((prevSessions) => prevSessions.map((session) => (
+                session.id === voiceSessionId
+                    ? { ...session, confirmed: true, parsed_items: sanitizedItems }
+                    : session
+            )));
 
             const count = result?.count ?? sanitizedItems.length;
             toast.success(`Added ${count} item${count === 1 ? '' : 's'} from voice.`);
@@ -502,6 +530,19 @@ export default function ListDetailPage() {
         if (!grouped[cat]) grouped[cat] = [];
         grouped[cat].push(item);
     });
+
+    const handleReuseVoiceSession = (session) => {
+        const parsedItems = normalizeVoiceItems(session.parsed_items || []);
+        if (parsedItems.length === 0) {
+            toast.error('This voice session does not contain any parsed items.');
+            return;
+        }
+
+        setVoiceSessionId(session.id);
+        setVoiceTranscript(session.transcript || '');
+        setVoiceItems(parsedItems);
+        setVoiceModalOpen(true);
+    };
 
     return (
         <div>
@@ -556,6 +597,12 @@ export default function ListDetailPage() {
                     />
                 </div>
             </div>
+
+            <VoiceHistoryPanel
+                sessions={voiceSessions}
+                loading={voiceHistoryLoading}
+                onReuseSession={handleReuseVoiceSession}
+            />
 
             {/* Add/Edit Form */}
             {showAddForm && (

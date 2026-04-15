@@ -107,6 +107,11 @@ const useGroceryStore = create((set) => ({
     const result = await groceryService.confirmVoiceSession({ sessionId, listId, items });
     return result;
   },
+
+  fetchVoiceSessions: async () => {
+    const sessions = await groceryService.getVoiceSessions();
+    return sessions;
+  },
 }));
 
 export default useGroceryStore;

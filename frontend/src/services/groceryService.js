@@ -72,3 +72,8 @@ export const confirmVoiceSession = async ({ sessionId, listId, items }) => {
   });
   return data;
 };
+
+export const getVoiceSessions = async () => {
+  const { data } = await api.get('/voice/sessions/');
+  return data;
+};
