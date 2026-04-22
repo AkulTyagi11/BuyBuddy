@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, Plus, Trash2, Check, Pencil, ShoppingBasket, Mic, Loader2, X,
+    ArrowLeft, Plus, Trash2, Check, Pencil, ShoppingBasket, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useGroceryStore from '../stores/groceryStore';
@@ -13,6 +13,7 @@ import EmptyState from '../components/EmptyState';
 import Modal from '../components/Modal';
 import VoiceHistoryPanel from '../components/VoiceHistoryPanel';
 import VoiceItemEditor from '../components/VoiceItemEditor';
+import VoiceInputButton from '../components/VoiceInputButton';
 
 const UNIT_OPTIONS = [
     { value: 'pcs', label: 'Pieces' },
@@ -598,14 +599,14 @@ export default function ListDetailPage() {
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button
-                            variant="secondary"
-                            onClick={handleVoiceCapture}
-                            disabled={voiceProcessing}
-                        >
-                            {voiceProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
-                            {voiceListening ? 'Stop Listening' : 'Voice Add'}
-                        </Button>
+                        <VoiceInputButton
+                            voiceProcessing={voiceProcessing}
+                            voiceListening={voiceListening}
+                            voiceSupported={voiceSupported}
+                            voiceFallbackReason={voiceFallbackReason}
+                            onVoiceCapture={handleVoiceCapture}
+                            onManualEntry={() => openManualVoiceModal({ reason: 'Manual entry mode enabled.' })}
+                        />
                         <Button
                             onClick={() => {
                                 resetForm();
@@ -617,29 +618,6 @@ export default function ListDetailPage() {
                         </Button>
                     </div>
                 </div>
-                {voiceFallbackReason && (
-                    <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                        <p>{voiceFallbackReason}</p>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                            <Button variant="outline" size="sm" onClick={handleVoiceCapture} disabled={voiceProcessing}>
-                                Retry Voice
-                            </Button>
-                            <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={() => openManualVoiceModal({ reason: 'Manual entry mode enabled.' })}
-                                disabled={voiceProcessing}
-                            >
-                                Manual Entry
-                            </Button>
-                        </div>
-                    </div>
-                )}
-                {!voiceSupported && (
-                    <p className="mt-2 text-xs text-amber-700">
-                        Voice input is unavailable in this browser. You can still add items manually.
-                    </p>
-                )}
 
                 {/* Progress bar */}
                 <div className="mt-4 w-full bg-gray-100 rounded-full h-2.5">
