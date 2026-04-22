@@ -12,6 +12,7 @@ import Skeleton from '../components/Skeleton';
 import EmptyState from '../components/EmptyState';
 import Modal from '../components/Modal';
 import VoiceHistoryPanel from '../components/VoiceHistoryPanel';
+import VoiceItemEditor from '../components/VoiceItemEditor';
 
 const UNIT_OPTIONS = [
     { value: 'pcs', label: 'Pieces' },
@@ -645,63 +646,15 @@ export default function ListDetailPage() {
 
                     <div className="max-h-[55vh] space-y-3 overflow-y-auto pr-1">
                         {voiceItems.map((item, index) => (
-                            <div key={`voice-item-${index}`} className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[2fr_1fr_1fr_1.5fr_auto]">
-                                    <Input
-                                        label="Name"
-                                        value={item.name}
-                                        onChange={(event) => handleVoiceItemChange(index, 'name', event.target.value)}
-                                        inputClassName="py-2 text-sm"
-                                    />
-                                    <Input
-                                        label="Qty"
-                                        type="number"
-                                        min="0.01"
-                                        step="0.01"
-                                        value={item.quantity}
-                                        onChange={(event) => handleVoiceItemChange(index, 'quantity', event.target.value)}
-                                        inputClassName="py-2 text-sm"
-                                    />
-                                    <label className="block text-sm font-medium text-neutral-dark">
-                                        Unit
-                                        <select
-                                            value={item.unit}
-                                            onChange={(event) => handleVoiceItemChange(index, 'unit', event.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-border-default bg-white px-3 py-2 text-sm outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
-                                        >
-                                            {UNIT_OPTIONS.map((unitOption) => (
-                                                <option key={unitOption.value} value={unitOption.value}>
-                                                    {unitOption.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </label>
-                                    <label className="block text-sm font-medium text-neutral-dark">
-                                        Category
-                                        <select
-                                            value={item.category}
-                                            onChange={(event) => handleVoiceItemChange(index, 'category', event.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-border-default bg-white px-3 py-2 text-sm outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
-                                        >
-                                            <option value="">No category</option>
-                                            {categories.map((category) => (
-                                                <option key={category.id} value={category.id}>{category.name}</option>
-                                            ))}
-                                        </select>
-                                    </label>
-                                    <div className="flex items-end">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleVoiceItemRemove(index)}
-                                            className="text-semantic-error hover:bg-red-50"
-                                            aria-label="Remove voice item"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
+                            <VoiceItemEditor
+                                key={`voice-item-${index}`}
+                                item={item}
+                                index={index}
+                                categories={categories}
+                                unitOptions={UNIT_OPTIONS}
+                                onChange={handleVoiceItemChange}
+                                onRemove={handleVoiceItemRemove}
+                            />
                         ))}
                     </div>
 
