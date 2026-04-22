@@ -223,6 +223,7 @@ export default function ListDetailPage() {
     const [voiceSessionId, setVoiceSessionId] = useState(null);
     const [voiceTranscript, setVoiceTranscript] = useState('');
     const [voiceItems, setVoiceItems] = useState([]);
+    const [voiceFallbackReason, setVoiceFallbackReason] = useState('');
     const [voiceSessions, setVoiceSessions] = useState([]);
     const [voiceHistoryLoading, setVoiceHistoryLoading] = useState(false);
     const recognitionRef = useRef(null);
@@ -338,9 +339,20 @@ export default function ListDetailPage() {
         setVoiceSessionId(null);
         setVoiceTranscript('');
         setVoiceItems([]);
+        setVoiceFallbackReason('');
+    };
+
+    const openManualVoiceModal = ({ transcript = '', sessionId = null, reason = '' } = {}) => {
+        setVoiceSessionId(sessionId);
+        setVoiceTranscript(transcript);
+        setVoiceItems([{ name: '', quantity: '1', unit: 'pcs', category: '' }]);
+        setVoiceFallbackReason(reason);
+        setVoiceModalOpen(true);
     };
 
     const handleVoiceCapture = () => {
+        setVoiceFallbackReason('');
+
         if (!voiceSupported) {
             toast.error('Voice capture is not supported in this browser.');
             return;
@@ -369,13 +381,16 @@ export default function ListDetailPage() {
 
         recognition.onerror = (event) => {
             if (event.error === 'no-speech') {
+                setVoiceFallbackReason('No speech detected. You can retry voice capture or switch to manual entry.');
                 toast.error('No speech detected. Please try again.');
                 return;
             }
             if (event.error === 'not-allowed') {
+                setVoiceFallbackReason('Microphone access was denied. Continue by adding items manually.');
                 toast.error('Microphone permission was denied.');
                 return;
             }
+            setVoiceFallbackReason('Voice capture failed. Retry voice capture or add items manually.');
             toast.error('Voice capture failed. Please try again.');
         };
 
@@ -386,6 +401,7 @@ export default function ListDetailPage() {
                 .trim();
 
             if (!transcript) {
+                setVoiceFallbackReason('No transcript was captured. Retry voice capture or add items manually.');
                 toast.error('Could not recognize any grocery items.');
                 return;
             }
@@ -399,6 +415,11 @@ export default function ListDetailPage() {
 
                 const parsedItems = normalizeVoiceItems(session.parsed_items || []);
                 if (parsedItems.length === 0) {
+                    openManualVoiceModal({
+                        transcript: session.transcript || transcript,
+                        sessionId: session.id,
+                        reason: 'No items were recognized from voice input. Add them manually below.',
+                    });
                     toast.error('No grocery items were recognized.');
                     return;
                 }
@@ -406,10 +427,12 @@ export default function ListDetailPage() {
                 setVoiceSessionId(session.id);
                 setVoiceTranscript(session.transcript || transcript);
                 setVoiceItems(parsedItems);
+                setVoiceFallbackReason('');
                 setVoiceModalOpen(true);
                 setVoiceSessions((prevSessions) => [session, ...prevSessions].slice(0, 6));
                 toast.success('Review and confirm voice items.');
             } catch {
+                setVoiceFallbackReason('Voice processing failed. Retry voice capture or use manual entry.');
                 toast.error('Failed to process voice input.');
             } finally {
                 setVoiceProcessing(false);
@@ -454,11 +477,6 @@ export default function ListDetailPage() {
     };
 
     const handleVoiceConfirm = async () => {
-        if (!voiceSessionId) {
-            toast.error('No voice session selected.');
-            return;
-        }
-
         const sanitizedItems = voiceItems
             .map((item) => ({
                 name: item.name.trim(),
@@ -475,20 +493,35 @@ export default function ListDetailPage() {
 
         setVoiceProcessing(true);
         try {
-            const result = await confirmVoiceSession({
-                sessionId: voiceSessionId,
-                listId: Number(id),
-                items: sanitizedItems,
-            });
-            await fetchList(id);
-            resetVoiceModal();
-            setVoiceSessions((prevSessions) => prevSessions.map((session) => (
-                session.id === voiceSessionId
-                    ? { ...session, confirmed: true, parsed_items: sanitizedItems }
-                    : session
-            )));
+            let count = sanitizedItems.length;
 
-            const count = result?.count ?? sanitizedItems.length;
+            if (voiceSessionId) {
+                const result = await confirmVoiceSession({
+                    sessionId: voiceSessionId,
+                    listId: Number(id),
+                    items: sanitizedItems,
+                });
+                count = result?.count ?? sanitizedItems.length;
+                await fetchList(id);
+
+                setVoiceSessions((prevSessions) => prevSessions.map((session) => (
+                    session.id === voiceSessionId
+                        ? { ...session, confirmed: true, parsed_items: sanitizedItems }
+                        : session
+                )));
+            } else {
+                await Promise.all(
+                    sanitizedItems.map((item) => createItem(id, {
+                        name: item.name,
+                        quantity: item.quantity,
+                        unit: item.unit,
+                        category: item.category,
+                        price: null,
+                    }))
+                );
+            }
+
+            resetVoiceModal();
             toast.success(`Added ${count} item${count === 1 ? '' : 's'} from voice.`);
         } catch {
             toast.error('Failed to confirm voice items.');
@@ -584,6 +617,24 @@ export default function ListDetailPage() {
                         </Button>
                     </div>
                 </div>
+                {voiceFallbackReason && (
+                    <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                        <p>{voiceFallbackReason}</p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                            <Button variant="outline" size="sm" onClick={handleVoiceCapture} disabled={voiceProcessing}>
+                                Retry Voice
+                            </Button>
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => openManualVoiceModal({ reason: 'Manual entry mode enabled.' })}
+                                disabled={voiceProcessing}
+                            >
+                                Manual Entry
+                            </Button>
+                        </div>
+                    </div>
+                )}
                 {!voiceSupported && (
                     <p className="mt-2 text-xs text-amber-700">
                         Voice input is unavailable in this browser. You can still add items manually.
