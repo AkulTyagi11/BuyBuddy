@@ -22,7 +22,7 @@ export default function ExpiringItemsAlert() {
 
   if (alertLoading && expiringItems.length === 0) {
     return (
-      <Card className="border-semantic-warning/30 bg-amber-50/40" accent>
+      <Card className="border-semantic-warning/30 bg-semantic-warning/10" accent>
         <p className="text-sm text-text-muted">Checking pantry expiry dates...</p>
       </Card>
     );
@@ -33,7 +33,7 @@ export default function ExpiringItemsAlert() {
   }
 
   return (
-    <Card className="border-semantic-warning/35 bg-amber-50/50" accent>
+    <Card className="border-semantic-warning/35 bg-semantic-warning/10" accent>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="mb-2 flex items-center gap-2 text-semantic-warning">

@@ -21,7 +21,7 @@ export default function VoiceInputButton({
       </Button>
 
       {voiceFallbackReason ? (
-        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <div className="mt-3 rounded-lg border border-semantic-warning/30 bg-semantic-warning/10 px-3 py-2 text-xs text-semantic-warning">
           <p>{voiceFallbackReason}</p>
           <div className="mt-2 flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={onVoiceCapture} disabled={voiceProcessing}>
@@ -40,7 +40,7 @@ export default function VoiceInputButton({
       ) : null}
 
       {!voiceSupported ? (
-        <p className="mt-2 text-xs text-amber-700">
+        <p className="mt-2 text-xs text-semantic-warning">
           Voice input is unavailable in this browser. You can still add items manually.
         </p>
       ) : null}

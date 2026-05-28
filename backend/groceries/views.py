@@ -1,5 +1,8 @@
+from django.contrib.auth import get_user_model
 from django.db.models import Q
 from datetime import date, timedelta
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -17,6 +20,24 @@ from .serializers import (
     VoiceSessionSerializer,
 )
 from .services.speech_service import parse_grocery_items
+
+
+User = get_user_model()
+
+
+def broadcast_list_event(list_id, event, payload):
+    channel_layer = get_channel_layer()
+    if not channel_layer:
+        return
+
+    async_to_sync(channel_layer.group_send)(
+        f'list_{list_id}',
+        {
+            'type': 'list.event',
+            'event': event,
+            'payload': payload,
+        },
+    )
 
 
 class CategoryListView(generics.ListAPIView):
@@ -45,6 +66,19 @@ class GroceryListDetailView(generics.RetrieveUpdateDestroyAPIView):
             Q(owner=self.request.user) | Q(shared_with=self.request.user)
         ).distinct()
 
+    def perform_update(self, serializer):
+        grocery_list = serializer.save()
+        broadcast_list_event(
+            grocery_list.id,
+            'list_updated',
+            GroceryListSerializer(grocery_list).data,
+        )
+
+    def perform_destroy(self, instance):
+        list_id = instance.id
+        instance.delete()
+        broadcast_list_event(list_id, 'list_deleted', {'id': list_id})
+
 
 class GroceryItemListCreateView(generics.ListCreateAPIView):
     serializer_class = GroceryItemSerializer
@@ -66,7 +100,12 @@ class GroceryItemListCreateView(generics.ListCreateAPIView):
         ).first()
         if not grocery_list:
             raise PermissionError('You do not have access to this list.')
-        serializer.save(grocery_list=grocery_list)
+        item = serializer.save(grocery_list=grocery_list)
+        broadcast_list_event(
+            grocery_list.id,
+            'item_created',
+            GroceryItemSerializer(item).data,
+        )
 
 
 class GroceryItemDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -78,6 +117,20 @@ class GroceryItemDetailView(generics.RetrieveUpdateDestroyAPIView):
                 Q(owner=self.request.user) | Q(shared_with=self.request.user)
             )
         )
+
+    def perform_update(self, serializer):
+        item = serializer.save()
+        broadcast_list_event(
+            item.grocery_list_id,
+            'item_updated',
+            GroceryItemSerializer(item).data,
+        )
+
+    def perform_destroy(self, instance):
+        list_id = instance.grocery_list_id
+        item_id = instance.id
+        instance.delete()
+        broadcast_list_event(list_id, 'item_deleted', {'id': item_id})
 
 
 class PantryDetailView(generics.RetrieveAPIView):
@@ -117,6 +170,147 @@ class VoiceSessionListView(generics.ListAPIView):
         return VoiceSession.objects.filter(user=self.request.user)
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def share_list_with_user(request, pk):
+    grocery_list = GroceryList.objects.filter(pk=pk).first()
+    if not grocery_list:
+        return Response({'detail': 'List not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if grocery_list.owner != request.user:
+        raise PermissionDenied('Only the list owner can share this list.')
+
+    username = (request.data.get('username') or '').strip()
+    if not username:
+        return Response({'detail': 'username is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = User.objects.filter(username=username).first()
+    if not user:
+        return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if user == request.user:
+        return Response({'detail': 'You cannot share a list with yourself.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    grocery_list.shared_with.add(user)
+    grocery_list.is_shared = True
+    grocery_list.save(update_fields=['is_shared'])
+
+    broadcast_list_event(
+        grocery_list.id,
+        'list_shared',
+        {
+            'list_id': grocery_list.id,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+            },
+        },
+    )
+
+    return Response(
+        {
+            'status': 'shared',
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+            },
+        },
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def unshare_list_with_user(request, pk):
+    grocery_list = GroceryList.objects.filter(pk=pk).first()
+    if not grocery_list:
+        return Response({'detail': 'List not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if grocery_list.owner != request.user:
+        raise PermissionDenied('Only the list owner can unshare this list.')
+
+    username = (request.data.get('username') or '').strip()
+    if not username:
+        return Response({'detail': 'username is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = User.objects.filter(username=username).first()
+    if not user:
+        return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    grocery_list.shared_with.remove(user)
+    if grocery_list.shared_with.count() == 0:
+        grocery_list.is_shared = False
+        grocery_list.save(update_fields=['is_shared'])
+
+    broadcast_list_event(
+        grocery_list.id,
+        'list_unshared',
+        {
+            'list_id': grocery_list.id,
+            'user_id': user.id,
+        },
+    )
+
+    return Response(
+        {
+            'status': 'unshared',
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+            },
+        },
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_collaborators(request, pk):
+    grocery_list = GroceryList.objects.filter(pk=pk).first()
+    if not grocery_list:
+        return Response({'detail': 'List not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if grocery_list.owner != request.user and request.user not in grocery_list.shared_with.all():
+        raise PermissionDenied('You do not have access to this list.')
+
+    collaborators = [
+        {
+            'id': grocery_list.owner.id,
+            'username': grocery_list.owner.username,
+            'first_name': grocery_list.owner.first_name,
+            'last_name': grocery_list.owner.last_name,
+            'role': 'owner',
+        }
+    ]
+
+    collaborators.extend(
+        {
+            'id': user.id,
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'role': 'collaborator',
+        }
+        for user in grocery_list.shared_with.all()
+    )
+
+    return Response(collaborators, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def shared_with_me(request):
+    lists = GroceryList.objects.filter(shared_with=request.user)
+    serializer = GroceryListSummarySerializer(lists, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def toggle_item_purchased(request, pk):
@@ -134,7 +328,9 @@ def toggle_item_purchased(request, pk):
         )
     item.is_purchased = not item.is_purchased
     item.save()
-    return Response(GroceryItemSerializer(item).data)
+    payload = GroceryItemSerializer(item).data
+    broadcast_list_event(item.grocery_list_id, 'item_updated', payload)
+    return Response(payload)
 
 
 @api_view(['PATCH'])
@@ -175,6 +371,11 @@ def pantry_item_to_list(request, pk):
         quantity=item.quantity,
         unit=item.unit,
         category=item.category,
+    )
+    broadcast_list_event(
+        grocery_list.id,
+        'item_created',
+        GroceryItemSerializer(grocery_item).data,
     )
     return Response(
         {
@@ -255,6 +456,7 @@ def voice_session_confirm(request, pk):
 
     items_data = request.data.get('items') or session.parsed_items or []
     created_count = 0
+    created_items = []
 
     for item in items_data:
         name = (item.get('name') or '').strip()
@@ -269,7 +471,7 @@ def voice_session_confirm(request, pk):
         if category_id:
             category = Category.objects.filter(pk=category_id).first()
 
-        GroceryItem.objects.create(
+        created_item = GroceryItem.objects.create(
             grocery_list=grocery_list,
             name=name,
             quantity=quantity,
@@ -277,9 +479,17 @@ def voice_session_confirm(request, pk):
             category=category,
         )
         created_count += 1
+        created_items.append(GroceryItemSerializer(created_item).data)
 
     session.confirmed = True
     session.grocery_list = grocery_list
     session.save(update_fields=['confirmed', 'grocery_list'])
+
+    if created_items:
+        broadcast_list_event(
+            grocery_list.id,
+            'items_created',
+            created_items,
+        )
 
     return Response({'status': 'items_added', 'count': created_count}, status=status.HTTP_200_OK)

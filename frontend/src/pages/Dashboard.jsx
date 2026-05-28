@@ -237,7 +237,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-neutral-dark">Welcome back, {userLabel}</h1>
+          <h1 className="text-3xl font-semibold text-neutral-dark font-heading">Welcome back, {userLabel}</h1>
           <p className="mt-1 text-text-muted">Plan your week faster with smart list management.</p>
         </div>
         <div className="flex items-center gap-2">
@@ -289,7 +289,7 @@ export default function Dashboard() {
                 id="sortBy"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="h-10.5 min-w-44 rounded-lg border border-border-default bg-white pl-9 pr-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
+                className="h-10.5 min-w-44 rounded-lg border border-border-default bg-surface pl-9 pr-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(123,191,74,0.18)]"
               >
                 <option value="recent">Most Recent</option>
                 <option value="name">Name</option>
@@ -401,7 +401,7 @@ export default function Dashboard() {
               >
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="truncate pr-2 font-semibold text-gray-900 transition-colors group-hover:text-emerald-700">
+                    <h3 className="truncate pr-2 font-semibold text-neutral-dark transition-colors group-hover:text-brand-primary-hover">
                       {list.name}
                     </h3>
                     <span className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusClasses}`}>
@@ -414,14 +414,14 @@ export default function Dashboard() {
                       e.stopPropagation();
                       handleDelete(list.id, list.name);
                     }}
-                    className="icon-button-motion shrink-0 rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                    className="icon-button-motion shrink-0 rounded p-1 text-text-muted hover:bg-red-50 hover:text-red-500"
                     aria-label={`Delete ${list.name}`}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
 
-                <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-text-muted">
                   <span className="flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     {list.purchasedCount}/{list.itemCount} items
@@ -432,13 +432,13 @@ export default function Dashboard() {
                   </span>
                 </div>
 
-                <div className="h-2 w-full rounded-full bg-gray-100">
+                <div className="h-2 w-full rounded-full bg-surface-strong">
                   <div
-                    className="h-2 rounded-full bg-emerald-500 transition-all duration-300"
+                    className="h-2 rounded-full bg-brand-primary transition-all duration-300"
                     style={{ width: `${list.progress}%` }}
                   />
                 </div>
-                <p className="mt-1 text-xs text-gray-400">{list.progress}% complete</p>
+                <p className="mt-1 text-xs text-text-muted/80">{list.progress}% complete</p>
               </Card>
             );
           })}
@@ -447,7 +447,7 @@ export default function Dashboard() {
 
       <Modal open={showModal} onClose={() => setShowModal(false)}>
         <Card className="modal-enter mx-auto w-full max-w-md" accent>
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">Create New List</h2>
+          <h2 className="mb-4 text-lg font-semibold text-neutral-dark font-heading">Create New List</h2>
           <form onSubmit={handleCreate} className="space-y-4">
             <Input
               label="List Name"

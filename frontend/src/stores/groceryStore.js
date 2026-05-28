@@ -6,6 +6,7 @@ const useGroceryStore = create((set) => ({
   currentList: null,
   items: [],
   categories: [],
+  collaborators: [],
   loading: false,
 
   // Lists
@@ -111,6 +112,86 @@ const useGroceryStore = create((set) => ({
   fetchVoiceSessions: async () => {
     const sessions = await groceryService.getVoiceSessions();
     return sessions;
+  },
+
+  // Collaboration
+  fetchCollaborators: async (listId) => {
+    const collaborators = await groceryService.getCollaborators(listId);
+    set({ collaborators });
+    return collaborators;
+  },
+
+  shareListWithUser: async (listId, username) => {
+    const result = await groceryService.shareListWithUser(listId, username);
+    if (result?.user) {
+      set((state) => ({
+        collaborators: [...state.collaborators, { ...result.user, role: 'collaborator' }],
+      }));
+    }
+    return result;
+  },
+
+  unshareListWithUser: async (listId, username) => {
+    const result = await groceryService.unshareListWithUser(listId, username);
+    if (result?.user) {
+      set((state) => ({
+        collaborators: state.collaborators.filter((collaborator) => collaborator.id !== result.user.id),
+      }));
+    }
+    return result;
+  },
+
+  applyRealtimeEvent: (event, payload) => {
+    set((state) => {
+      if (!event) {
+        return {};
+      }
+
+      if (event === 'item_created' && payload) {
+        if (state.items.some((item) => item.id === payload.id)) {
+          return {};
+        }
+        return { items: [...state.items, payload] };
+      }
+
+      if (event === 'items_created' && Array.isArray(payload)) {
+        const existingIds = new Set(state.items.map((item) => item.id));
+        const merged = [...state.items, ...payload.filter((item) => !existingIds.has(item.id))];
+        return { items: merged };
+      }
+
+      if (event === 'item_updated' && payload) {
+        return {
+          items: state.items.map((item) => (item.id === payload.id ? payload : item)),
+        };
+      }
+
+      if (event === 'item_deleted' && payload?.id) {
+        return {
+          items: state.items.filter((item) => item.id !== payload.id),
+        };
+      }
+
+      if (event === 'list_updated' && payload) {
+        return {
+          lists: state.lists.map((list) => (list.id === payload.id ? { ...list, ...payload } : list)),
+          currentList: state.currentList?.id === payload.id ? { ...state.currentList, ...payload } : state.currentList,
+        };
+      }
+
+      if (event === 'list_deleted' && payload?.id) {
+        const updates = {
+          lists: state.lists.filter((list) => list.id !== payload.id),
+        };
+        if (state.currentList?.id === payload.id) {
+          updates.currentList = null;
+          updates.items = [];
+        }
+        return updates;
+      }
+
+      return {};
+    });
   },
 }));
 

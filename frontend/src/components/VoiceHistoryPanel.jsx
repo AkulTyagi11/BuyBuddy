@@ -26,17 +26,17 @@ export default function VoiceHistoryPanel({ sessions = [], loading = false, onRe
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <History className="h-4 w-4 text-brand-primary" />
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-700">Recent Voice Inputs</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-dark">Recent Voice Inputs</h2>
         </div>
-        <span className="text-xs text-gray-500">{sessions.length} session{sessions.length === 1 ? '' : 's'}</span>
+        <span className="text-xs text-text-muted">{sessions.length} session{sessions.length === 1 ? '' : 's'}</span>
       </div>
 
       {loading ? (
-        <p className="text-sm text-gray-500">Loading voice history...</p>
+        <p className="text-sm text-text-muted">Loading voice history...</p>
       ) : null}
 
       {!loading && sessions.length === 0 ? (
-        <p className="text-sm text-gray-500">No voice sessions yet. Try Voice Add to get started.</p>
+        <p className="text-sm text-text-muted">No voice sessions yet. Try Voice Add to get started.</p>
       ) : null}
 
       {!loading && sessions.length > 0 ? (
@@ -46,24 +46,24 @@ export default function VoiceHistoryPanel({ sessions = [], loading = false, onRe
             const itemCount = parsedItems.length;
 
             return (
-              <div key={session.id} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+              <div key={session.id} className="rounded-lg border border-border-default bg-surface-muted px-3 py-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-medium text-gray-800">
+                  <p className="text-sm font-medium text-neutral-dark">
                     {session.transcript || 'Untitled session'}
                   </p>
                   {session.confirmed ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-brand-primary-light/70 px-2 py-0.5 text-[11px] font-medium text-brand-primary">
                       <CheckCircle2 className="h-3 w-3" />
                       Confirmed
                     </span>
                   ) : (
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                    <span className="rounded-full bg-semantic-warning/15 px-2 py-0.5 text-[11px] font-medium text-semantic-warning">
                       Pending
                     </span>
                   )}
                 </div>
 
-                <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
+                <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-xs text-text-muted">
                   <span>{itemCount} item{itemCount === 1 ? '' : 's'} parsed</span>
                   <span>{formatSessionTimestamp(session.created_at)}</span>
                 </div>

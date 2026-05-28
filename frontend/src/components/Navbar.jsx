@@ -3,6 +3,7 @@ import { LogOut, ShoppingCart, LayoutDashboard, Menu, X, ChevronDown, Package } 
 import { useEffect, useRef, useState } from 'react';
 import useAuthStore from '../stores/authStore';
 import Button from './Button';
+import ThemeSelector from './ThemeSelector';
 
 export default function Navbar() {
   const { user, logout } = useAuthStore();
@@ -38,26 +39,26 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border-default/75 bg-white/80 backdrop-blur-md supports-backdrop-filter:bg-white/70">
+    <nav className="sticky top-0 z-50 border-b border-border-default/70 bg-surface/80 backdrop-blur-md supports-backdrop-filter:bg-surface/70">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center gap-8">
             <Link
               to="/dashboard"
-              className="group flex items-center gap-2 font-bold text-xl text-brand-primary transition-colors"
+              className="group flex items-center gap-2 text-xl font-semibold text-brand-primary transition-colors"
             >
               <ShoppingCart className="w-6 h-6" />
-              <span className="hidden sm:inline text-neutral-dark group-hover:text-brand-primary">GroceryList</span>
+              <span className="hidden sm:inline font-heading text-neutral-dark group-hover:text-brand-primary">BuyBuddy</span>
             </Link>
-            <div className="hidden md:flex items-center gap-1 rounded-xl bg-neutral-light/80 p-1">
+            <div className="hidden md:flex items-center gap-1 rounded-full bg-surface-muted/80 p-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`relative flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  className={`relative flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
                     isActive(link.to)
-                      ? 'bg-white text-brand-primary shadow-sm'
-                      : 'text-text-muted hover:bg-white/70 hover:text-neutral-dark'
+                      ? 'bg-surface text-brand-primary shadow-sm'
+                      : 'text-text-muted hover:bg-surface/70 hover:text-neutral-dark'
                   }`}
                 >
                   <link.icon className="w-4 h-4" />
@@ -72,11 +73,12 @@ export default function Navbar() {
             </div>
           </div>
 
-          <div className="hidden md:flex items-center" ref={userMenuRef}>
+          <div className="hidden md:flex items-center gap-3" ref={userMenuRef}>
+            <ThemeSelector />
             <button
               type="button"
               onClick={() => setUserMenuOpen((current) => !current)}
-              className="inline-flex items-center gap-2 rounded-lg border border-border-default bg-white px-3 py-1.5 text-sm text-text-muted transition hover:bg-neutral-light"
+              className="inline-flex items-center gap-2 rounded-full border border-border-default bg-surface px-3 py-1.5 text-sm text-text-muted transition hover:bg-surface-muted"
               aria-haspopup="menu"
               aria-expanded={userMenuOpen}
             >
@@ -88,8 +90,8 @@ export default function Navbar() {
             </button>
 
             {userMenuOpen && (
-              <div className="dropdown-enter absolute right-6 top-14 z-50 w-56 rounded-xl border border-border-default bg-white p-2 shadow-xl" role="menu">
-                <div className="mb-2 rounded-lg bg-neutral-light px-3 py-2">
+              <div className="dropdown-enter absolute right-6 top-14 z-50 w-56 rounded-xl border border-border-default bg-surface p-2 shadow-xl" role="menu">
+                <div className="mb-2 rounded-lg bg-surface-muted px-3 py-2">
                   <p className="text-xs font-medium uppercase tracking-wide text-text-muted">Signed in as</p>
                   <p className="mt-1 truncate text-sm font-medium text-neutral-dark">{user?.username}</p>
                 </div>
@@ -132,11 +134,11 @@ export default function Navbar() {
         <button
           type="button"
           onClick={() => setMobileOpen(false)}
-          className="absolute inset-0 bg-neutral-dark/30"
+          className="absolute inset-0 bg-neutral-dark/35"
           aria-label="Close navigation panel"
         />
         <div
-          className={`absolute right-0 top-0 h-full w-72 border-l border-border-default bg-white p-4 shadow-2xl transition-transform duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          className={`absolute right-0 top-0 h-full w-72 border-l border-border-default bg-surface p-4 shadow-2xl transition-transform duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             mobileOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         >
@@ -159,10 +161,10 @@ export default function Navbar() {
                 key={link.to}
                 to={link.to}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                   isActive(link.to)
                     ? 'bg-brand-primary-light text-brand-primary'
-                    : 'text-text-muted hover:bg-neutral-light hover:text-neutral-dark'
+                    : 'text-text-muted hover:bg-surface-muted hover:text-neutral-dark'
                 }`}
               >
                 <link.icon className="h-4 w-4" />
@@ -175,6 +177,9 @@ export default function Navbar() {
             <p className="mb-3 text-sm text-text-muted">
               Signed in as <strong>{user?.username}</strong>
             </p>
+            <div className="mb-4">
+              <ThemeSelector align="left" />
+            </div>
             <Button
               onClick={handleLogout}
               variant="destructive"

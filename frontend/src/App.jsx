@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import LoginPage from './pages/LoginPage';
@@ -7,8 +8,15 @@ import ListDetailPage from './pages/ListDetailPage';
 import PantryPage from './pages/PantryPage';
 import AppLayout from './layouts/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
+import useThemeStore from './stores/themeStore';
 
 function App() {
+  const initTheme = useThemeStore((state) => state.initTheme);
+
+  useEffect(() => {
+    initTheme();
+  }, [initTheme]);
+
   return (
     <BrowserRouter>
       <Toaster
@@ -17,11 +25,11 @@ function App() {
           duration: 4000,
           style: {
             borderRadius: '12px',
-            border: '1px solid #E5E7EB',
-            boxShadow: '0 10px 30px rgba(31, 41, 55, 0.12)',
+            border: '1px solid var(--color-border-default)',
+            boxShadow: '0 14px 30px rgba(43, 36, 28, 0.18)',
             padding: '12px 14px',
-            background: '#FFFFFF',
-            color: '#1F2937',
+            background: 'var(--color-surface)',
+            color: 'var(--color-neutral-dark)',
           },
         }}
       />

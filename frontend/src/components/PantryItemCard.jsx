@@ -178,7 +178,7 @@ export default function PantryItemCard({
         </div>
 
         {item.notes ? (
-          <p className="mb-4 rounded-lg bg-neutral-light px-3 py-2 text-sm text-text-muted">{item.notes}</p>
+          <p className="mb-4 rounded-lg bg-surface-muted px-3 py-2 text-sm text-text-muted">{item.notes}</p>
         ) : null}
 
         <p className="mb-3 text-xs text-text-muted sm:hidden">

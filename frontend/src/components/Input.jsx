@@ -2,22 +2,22 @@ import { forwardRef, useId } from 'react';
 import { CheckCircle2, X } from 'lucide-react';
 
 const baseInputClasses =
-  'w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-neutral-dark placeholder:text-text-muted/80 outline-none transition-[border-color,box-shadow] duration-150 ease-out';
+  'w-full rounded-xl border bg-surface px-4 py-2.5 text-sm text-neutral-dark placeholder:text-text-muted/80 outline-none transition-[border-color,box-shadow,background-color] duration-150 ease-out';
 
 function getStateClasses({ error, success, disabled }) {
   if (disabled) {
-    return 'border-border-default bg-neutral-light text-text-muted';
+    return 'border-border-default bg-surface-muted text-text-muted';
   }
 
   if (error) {
-    return 'border-semantic-error focus:border-semantic-error focus:shadow-[0_0_0_3px_rgba(239,68,68,0.12)]';
+    return 'border-semantic-error focus:border-semantic-error focus:shadow-[0_0_0_3px_rgba(217,91,74,0.18)]';
   }
 
   if (success) {
-    return 'border-semantic-success focus:border-semantic-success focus:shadow-[0_0_0_3px_rgba(16,185,129,0.12)]';
+    return 'border-semantic-success focus:border-semantic-success focus:shadow-[0_0_0_3px_rgba(123,191,74,0.18)]';
   }
 
-  return 'border-border-default focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]';
+  return 'border-border-default focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(123,191,74,0.18)]';
 }
 
 const Input = forwardRef(function Input(

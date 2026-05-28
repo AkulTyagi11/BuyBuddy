@@ -17,8 +17,8 @@ function Card({
   };
 
   const classes = [
-    'relative overflow-hidden rounded-2xl border border-border-default bg-white shadow-[0_1px_3px_rgba(0,0,0,0.1)] transition-all duration-[250ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
-    hover ? 'hover:-translate-y-0.5 hover:border-brand-primary-light hover:shadow-[0_10px_15px_rgba(16,185,129,0.1)]' : '',
+    'relative overflow-hidden rounded-2xl border border-border-default bg-surface shadow-[0_10px_30px_rgba(43,36,28,0.08)] transition-all duration-[250ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
+    hover ? 'hover:-translate-y-0.5 hover:border-brand-primary-light hover:shadow-[0_16px_35px_rgba(43,36,28,0.12)]' : '',
     paddingClasses[padding] || paddingClasses.md,
     className,
   ]

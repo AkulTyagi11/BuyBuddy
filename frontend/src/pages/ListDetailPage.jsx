@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, Plus, Trash2, Check, Pencil, ShoppingBasket, X,
+    ArrowLeft, Plus, Trash2, Check, Pencil, ShoppingBasket, X, Share2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useGroceryStore from '../stores/groceryStore';
@@ -14,6 +14,12 @@ import Modal from '../components/Modal';
 import VoiceHistoryPanel from '../components/VoiceHistoryPanel';
 import VoiceItemEditor from '../components/VoiceItemEditor';
 import VoiceInputButton from '../components/VoiceInputButton';
+import RealTimeIndicator from '../components/RealTimeIndicator';
+import CollaboratorsList from '../components/CollaboratorsList';
+import CollaborationActivity from '../components/CollaborationActivity';
+import ShareListModal from '../components/ShareListModal';
+import useListCollaboration from '../hooks/useListCollaboration';
+import useAuthStore from '../stores/authStore';
 
 const UNIT_OPTIONS = [
     { value: 'pcs', label: 'Pieces' },
@@ -66,7 +72,7 @@ function ItemForm({ onSubmit, submitLabel, form, setForm, categories, onCancel }
                     <select
                         value={form.unit}
                         onChange={(e) => setForm({ ...form, unit: e.target.value })}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm"
+                        className="flex-1 rounded-lg border border-border-default px-3 py-2 text-sm outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(123,191,74,0.18)]"
                     >
                         {UNIT_OPTIONS.map((u) => (
                             <option key={u.value} value={u.value}>{u.label}</option>
@@ -76,7 +82,7 @@ function ItemForm({ onSubmit, submitLabel, form, setForm, categories, onCancel }
                 <select
                     value={form.category}
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm"
+                    className="rounded-lg border border-border-default px-3 py-2 text-sm outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(123,191,74,0.18)]"
                 >
                     <option value="">No category</option>
                     {categories.map((c) => (
@@ -117,24 +123,24 @@ function ItemForm({ onSubmit, submitLabel, form, setForm, categories, onCancel }
 function ItemRow({ item, onToggle, onEdit, onDelete }) {
     return (
         <div
-            className={`flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition group ${item.is_purchased ? 'bg-gray-50/50' : ''
+            className={`flex items-center gap-3 px-4 py-3 border-b border-border-default/60 hover:bg-surface-muted transition group ${item.is_purchased ? 'bg-surface-muted/60' : ''
                 }`}
         >
             <button
                 onClick={() => onToggle(item.id)}
                 className={`icon-button-motion shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition ${item.is_purchased
-                        ? 'bg-emerald-500 border-emerald-500 text-white'
-                        : 'border-gray-300 hover:border-emerald-400'
+                        ? 'bg-brand-primary border-brand-primary text-white'
+                        : 'border-border-default hover:border-brand-primary'
                     }`}
             >
                 {item.is_purchased && <Check className="w-3 h-3" />}
             </button>
 
             <div className="flex-1 min-w-0">
-                <span className={`text-sm font-medium ${item.is_purchased ? 'line-through text-gray-400' : 'text-gray-900'}`}>
+                <span className={`text-sm font-medium ${item.is_purchased ? 'line-through text-text-muted/80' : 'text-neutral-dark'}`}>
                     {item.name}
                 </span>
-                <span className="text-xs text-gray-400 ml-2">
+                <span className="text-xs text-text-muted ml-2">
                     {item.quantity} {item.unit}
                     {item.category_name && ` · ${item.category_name}`}
                     {item.price && ` · $${item.price}`}
@@ -145,14 +151,14 @@ function ItemRow({ item, onToggle, onEdit, onDelete }) {
                 {!item.is_purchased && (
                     <button
                         onClick={() => onEdit(item)}
-                        className="icon-button-motion rounded p-1 text-gray-400 hover:bg-blue-50 hover:text-blue-500"
+                        className="icon-button-motion rounded p-1 text-text-muted hover:bg-blue-50 hover:text-blue-500"
                     >
                         <Pencil className="w-3.5 h-3.5" />
                     </button>
                 )}
                 <button
                     onClick={() => onDelete(item.id)}
-                    className="icon-button-motion rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                    className="icon-button-motion rounded p-1 text-text-muted hover:bg-red-50 hover:text-red-500"
                 >
                     <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -179,13 +185,13 @@ function ListDetailSkeleton() {
             <div className="space-y-6">
                 {Array.from({ length: 2 }).map((_, sectionIndex) => (
                     <Card key={`detail-skeleton-section-${sectionIndex}`} className="overflow-hidden" padding="none" accent>
-                        <div className="border-b border-gray-200 bg-gray-50 px-4 py-2">
+                        <div className="border-b border-border-default bg-surface-muted px-4 py-2">
                             <Skeleton className="h-3 w-28" />
                         </div>
                         {Array.from({ length: 4 }).map((__, rowIndex) => (
                             <div
                                 key={`detail-skeleton-row-${sectionIndex}-${rowIndex}`}
-                                className="flex items-center gap-3 border-b border-gray-100 px-4 py-3 last:border-b-0"
+                                className="flex items-center gap-3 border-b border-border-default/60 px-4 py-3 last:border-b-0"
                             >
                                 <Skeleton className="h-5 w-5" circle />
                                 <div className="flex-1">
@@ -210,7 +216,9 @@ export default function ListDetailPage() {
         fetchList, fetchCategories,
         createItem, updateItem, deleteItem, toggleItem,
         processVoiceTranscript, confirmVoiceSession, fetchVoiceSessions,
+        applyRealtimeEvent, collaborators, fetchCollaborators, shareListWithUser, unshareListWithUser,
     } = useGroceryStore();
+    const { user } = useAuthStore();
 
     const [showAddForm, setShowAddForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -227,12 +235,27 @@ export default function ListDetailPage() {
     const [voiceFallbackReason, setVoiceFallbackReason] = useState('');
     const [voiceSessions, setVoiceSessions] = useState([]);
     const [voiceHistoryLoading, setVoiceHistoryLoading] = useState(false);
+    const [shareModalOpen, setShareModalOpen] = useState(false);
+    const [shareLoading, setShareLoading] = useState(false);
+    const [activityItems, setActivityItems] = useState([]);
     const recognitionRef = useRef(null);
 
     useEffect(() => {
         fetchList(id);
         fetchCategories();
     }, [id, fetchList, fetchCategories]);
+
+    useEffect(() => {
+        const loadCollaborators = async () => {
+            try {
+                await fetchCollaborators(id);
+            } catch {
+                toast.error('Failed to load collaborators.');
+            }
+        };
+
+        loadCollaborators();
+    }, [id, fetchCollaborators]);
 
     useEffect(() => {
         const loadVoiceHistory = async () => {
@@ -263,6 +286,45 @@ export default function ListDetailPage() {
             }
         };
     }, []);
+
+    const appendActivity = useCallback((message) => {
+        setActivityItems((prev) => {
+            const timestamp = new Date().toLocaleTimeString([], {
+                hour: 'numeric',
+                minute: '2-digit',
+            });
+            const next = [{ id: `${Date.now()}-${Math.random()}`, message, timestamp }, ...prev];
+            return next.slice(0, 6);
+        });
+    }, []);
+
+    const handleRealtimeEvent = useCallback(
+        (event, payload) => {
+            applyRealtimeEvent(event, payload);
+
+            if (event === 'item_created' && payload?.name) {
+                appendActivity(`Added ${payload.name}`);
+            } else if (event === 'item_updated' && payload?.name) {
+                appendActivity(`Updated ${payload.name}`);
+            } else if (event === 'item_deleted' && payload?.id) {
+                appendActivity('Removed an item');
+            } else if (event === 'items_created' && Array.isArray(payload)) {
+                appendActivity(`Added ${payload.length} items`);
+            } else if (event === 'list_shared' && payload?.user?.username) {
+                appendActivity(`Shared with ${payload.user.username}`);
+            } else if (event === 'list_unshared') {
+                appendActivity('Removed a collaborator');
+            } else if (event === 'list_updated') {
+                appendActivity('List details updated');
+            }
+        },
+        [applyRealtimeEvent, appendActivity],
+    );
+
+    const { status: collaborationStatus, activeUsers } = useListCollaboration({
+        listId: id,
+        onEvent: handleRealtimeEvent,
+    });
 
     const resetForm = () => {
         setForm({ name: '', quantity: '1', unit: 'pcs', category: '', price: '' });
@@ -585,15 +647,15 @@ export default function ListDetailPage() {
             <div className="mb-6">
                 <button
                     onClick={() => navigate('/dashboard')}
-                    className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-3 transition"
+                    className="flex items-center gap-1 text-sm text-text-muted hover:text-neutral-dark mb-3 transition"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back to lists
                 </button>
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">{currentList.name}</h1>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <h1 className="text-2xl font-bold text-neutral-dark font-heading">{currentList.name}</h1>
+                        <p className="text-sm text-text-muted mt-1">
                             {items.length} item{items.length !== 1 ? 's' : ''} · {progress}% complete
                             {currentList.due_date && ` · Due ${new Date(currentList.due_date).toLocaleDateString()}`}
                         </p>
@@ -620,9 +682,9 @@ export default function ListDetailPage() {
                 </div>
 
                 {/* Progress bar */}
-                <div className="mt-4 w-full bg-gray-100 rounded-full h-2.5">
+                <div className="mt-4 w-full bg-surface-strong rounded-full h-2.5">
                     <div
-                        className="bg-emerald-500 h-2.5 rounded-full transition-all duration-300"
+                        className="bg-brand-primary h-2.5 rounded-full transition-all duration-300"
                         style={{ width: `${progress}%` }}
                     />
                 </div>
@@ -654,18 +716,18 @@ export default function ListDetailPage() {
                     }
                 }}
             >
-                <Card className="mx-auto max-w-3xl" padding="md" accent>
+                        <Card className="mx-auto max-w-3xl" padding="md" accent>
                     <div className="mb-4 flex items-start justify-between gap-4">
                         <div>
-                            <h2 className="text-lg font-semibold text-gray-900">Review Voice Items</h2>
-                            <p className="mt-1 text-xs text-gray-500">
+                                    <h2 className="text-lg font-semibold text-neutral-dark font-heading">Review Voice Items</h2>
+                                    <p className="mt-1 text-xs text-text-muted">
                                 {voiceTranscript ? `"${voiceTranscript}"` : 'Update recognized items before confirming.'}
                             </p>
                         </div>
                         <button
                             type="button"
                             onClick={resetVoiceModal}
-                            className="rounded p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+                                    className="rounded p-1 text-text-muted transition hover:bg-surface-muted hover:text-neutral-dark"
                             aria-label="Close voice review"
                             disabled={voiceProcessing}
                         >
@@ -735,8 +797,8 @@ export default function ListDetailPage() {
                             accent
                             style={{ '--stagger-index': index }}
                         >
-                            <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-                                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{category}</h3>
+                            <div className="px-4 py-2 bg-surface-muted border-b border-border-default">
+                                <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">{category}</h3>
                             </div>
                             {categoryItems.map((item) => (
                                 <ItemRow key={item.id} item={item} onToggle={handleToggle} onEdit={handleEdit} onDelete={handleDelete} />
@@ -752,8 +814,8 @@ export default function ListDetailPage() {
                             accent
                             style={{ '--stagger-index': Object.keys(grouped).length }}
                         >
-                            <div className="px-4 py-2 bg-emerald-50 border-b border-emerald-100">
-                                <h3 className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">
+                            <div className="px-4 py-2 bg-brand-primary-light/50 border-b border-brand-primary-light">
+                                <h3 className="text-xs font-semibold text-brand-primary uppercase tracking-wider">
                                     Purchased ({purchased.length})
                                 </h3>
                             </div>

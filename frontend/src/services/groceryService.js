@@ -77,3 +77,24 @@ export const getVoiceSessions = async () => {
   const { data } = await api.get('/voice/sessions/');
   return data;
 };
+
+// Collaboration
+export const getCollaborators = async (listId) => {
+  const { data } = await api.get(`/lists/${listId}/collaborators/`);
+  return data;
+};
+
+export const shareListWithUser = async (listId, username) => {
+  const { data } = await api.post(`/lists/${listId}/share-with-user/`, { username });
+  return data;
+};
+
+export const unshareListWithUser = async (listId, username) => {
+  const { data } = await api.post(`/lists/${listId}/unshare-with-user/`, { username });
+  return data;
+};
+
+export const getSharedWithMe = async () => {
+  const { data } = await api.get('/lists/shared-with-me/');
+  return data;
+};

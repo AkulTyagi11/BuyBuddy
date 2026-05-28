@@ -225,7 +225,7 @@ export default function PantryPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-neutral-dark">My Pantry</h1>
+          <h1 className="text-3xl font-semibold text-neutral-dark font-heading">My Pantry</h1>
           <p className="mt-1 text-text-muted">Track what you already have and move items to shopping lists in one click.</p>
         </div>
 
@@ -293,7 +293,7 @@ export default function PantryPage() {
               id="pantry-category-filter"
               value={categoryFilter}
               onChange={(event) => setCategoryFilter(event.target.value)}
-              className="h-10.5 w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
+              className="h-10.5 w-full rounded-lg border border-border-default bg-surface px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(123,191,74,0.18)]"
             >
               <option value="all">All categories</option>
               {categories.map((category) => (
@@ -308,7 +308,7 @@ export default function PantryPage() {
               id="pantry-condition-filter"
               value={conditionFilter}
               onChange={(event) => setConditionFilter(event.target.value)}
-              className="h-10.5 w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
+              className="h-10.5 w-full rounded-lg border border-border-default bg-surface px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(123,191,74,0.18)]"
             >
               <option value="all">All conditions</option>
               <option value="stock">In stock</option>
@@ -324,7 +324,7 @@ export default function PantryPage() {
               id="pantry-sort"
               value={sortBy}
               onChange={(event) => setSortBy(event.target.value)}
-              className="h-10.5 w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
+              className="h-10.5 w-full rounded-lg border border-border-default bg-surface px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(123,191,74,0.18)]"
             >
               <option value="added">Recently added</option>
               <option value="name">Name</option>
@@ -339,7 +339,7 @@ export default function PantryPage() {
               id="pantry-target-list"
               value={targetListId}
               onChange={(event) => setTargetListId(event.target.value)}
-              className="h-10.5 w-full rounded-lg border border-border-default bg-white px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)]"
+              className="h-10.5 w-full rounded-lg border border-border-default bg-surface px-3 text-sm text-neutral-dark outline-none transition focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(123,191,74,0.18)]"
             >
               {lists.length === 0 ? <option value="">No list available</option> : null}
               {lists.map((list) => (
@@ -350,7 +350,7 @@ export default function PantryPage() {
         </div>
 
         <div className="flex items-center justify-between gap-3">
-          <div className="inline-flex items-center gap-2 rounded-lg border border-border-default bg-neutral-light px-3 py-1.5 text-xs font-medium text-text-muted">
+          <div className="inline-flex items-center gap-2 rounded-lg border border-border-default bg-surface-muted px-3 py-1.5 text-xs font-medium text-text-muted">
             <SlidersHorizontal className="h-3.5 w-3.5" />
             {filteredItems.length} item{filteredItems.length === 1 ? '' : 's'} visible
           </div>

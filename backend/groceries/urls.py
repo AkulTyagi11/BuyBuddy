@@ -16,12 +16,20 @@ from .views import (
     voice_process,
     voice_session_confirm,
     VoiceSessionListView,
+    share_list_with_user,
+    unshare_list_with_user,
+    list_collaborators,
+    shared_with_me,
 )
 
 urlpatterns = [
     path('categories/', CategoryListView.as_view(), name='category-list'),
     path('lists/', GroceryListListCreateView.as_view(), name='grocery-list-list'),
+    path('lists/shared-with-me/', shared_with_me, name='grocery-list-shared-with-me'),
     path('lists/<int:pk>/', GroceryListDetailView.as_view(), name='grocery-list-detail'),
+    path('lists/<int:pk>/share-with-user/', share_list_with_user, name='grocery-list-share'),
+    path('lists/<int:pk>/unshare-with-user/', unshare_list_with_user, name='grocery-list-unshare'),
+    path('lists/<int:pk>/collaborators/', list_collaborators, name='grocery-list-collaborators'),
     path('lists/<int:list_id>/items/', GroceryItemListCreateView.as_view(), name='grocery-item-list'),
     path('items/<int:pk>/', GroceryItemDetailView.as_view(), name='grocery-item-detail'),
     path('items/<int:pk>/toggle/', toggle_item_purchased, name='grocery-item-toggle'),

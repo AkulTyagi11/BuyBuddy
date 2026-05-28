@@ -14,8 +14,8 @@ function EmptyState({
 
   const content = (
     <>
-      {Icon ? <Icon className={`empty-state-icon mx-auto mb-4 ${iconSize} text-gray-300`} /> : null}
-      <h3 className="mb-1 text-lg font-medium text-neutral-dark">{title}</h3>
+      {Icon ? <Icon className={`empty-state-icon mx-auto mb-4 ${iconSize} text-border-strong/70`} /> : null}
+      <h3 className="mb-1 text-lg font-medium text-neutral-dark font-heading">{title}</h3>
       {description ? <p className="mx-auto max-w-md text-text-muted">{description}</p> : null}
       {action ? <div className="mt-6">{action}</div> : null}
     </>
