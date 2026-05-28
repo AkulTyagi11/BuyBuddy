@@ -593,6 +593,32 @@ export default function ListDetailPage() {
         }
     };
 
+    const handleShare = async (username) => {
+        setShareLoading(true);
+        try {
+            await shareListWithUser(id, username);
+            toast.success('Collaborator added.');
+            await fetchCollaborators(id);
+        } catch {
+            toast.error('Failed to share this list.');
+        } finally {
+            setShareLoading(false);
+        }
+    };
+
+    const handleUnshare = async (username) => {
+        setShareLoading(true);
+        try {
+            await unshareListWithUser(id, username);
+            toast.success('Collaborator removed.');
+            await fetchCollaborators(id);
+        } catch {
+            toast.error('Failed to remove collaborator.');
+        } finally {
+            setShareLoading(false);
+        }
+    };
+
     if (loading && !currentList) {
         return <ListDetailSkeleton />;
     }
@@ -628,6 +654,14 @@ export default function ListDetailPage() {
         grouped[cat].push(item);
     });
 
+    const canManageShare = currentList?.owner === user?.id;
+    const collaboratorsWithNames = collaborators.map((collaborator) => ({
+        ...collaborator,
+        display_name:
+            [collaborator.first_name, collaborator.last_name].filter(Boolean).join(' ')
+            || collaborator.username,
+    }));
+
     const handleReuseVoiceSession = (session) => {
         const parsedItems = normalizeVoiceItems(session.parsed_items || []);
         if (parsedItems.length === 0) {
@@ -660,7 +694,15 @@ export default function ListDetailPage() {
                             {currentList.due_date && ` · Due ${new Date(currentList.due_date).toLocaleDateString()}`}
                         </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <RealTimeIndicator status={collaborationStatus} />
+                        <Button
+                            variant="secondary"
+                            onClick={() => setShareModalOpen(true)}
+                        >
+                            <Share2 className="w-4 h-4" />
+                            Share
+                        </Button>
                         <VoiceInputButton
                             voiceProcessing={voiceProcessing}
                             voiceListening={voiceListening}
@@ -690,11 +732,22 @@ export default function ListDetailPage() {
                 </div>
             </div>
 
-            <VoiceHistoryPanel
-                sessions={voiceSessions}
-                loading={voiceHistoryLoading}
-                onReuseSession={handleReuseVoiceSession}
-            />
+            <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+                <div className="space-y-4">
+                    <VoiceHistoryPanel
+                        sessions={voiceSessions}
+                        loading={voiceHistoryLoading}
+                        onReuseSession={handleReuseVoiceSession}
+                    />
+                    <CollaborationActivity items={activityItems} />
+                </div>
+                <div className="space-y-4">
+                    <CollaboratorsList
+                        activeUsers={activeUsers}
+                        collaborators={collaboratorsWithNames}
+                    />
+                </div>
+            </div>
 
             {/* Add/Edit Form */}
             {showAddForm && (
@@ -766,6 +819,16 @@ export default function ListDetailPage() {
                     </div>
                 </Card>
             </Modal>
+
+            <ShareListModal
+                open={shareModalOpen}
+                onClose={() => setShareModalOpen(false)}
+                collaborators={collaboratorsWithNames}
+                canManage={canManageShare}
+                onShare={handleShare}
+                onUnshare={handleUnshare}
+                loading={shareLoading}
+            />
 
             {/* Items */}
             {items.length === 0 ? (
