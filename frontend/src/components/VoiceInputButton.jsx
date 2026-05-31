@@ -9,16 +9,37 @@ export default function VoiceInputButton({
   onVoiceCapture,
   onManualEntry,
 }) {
+  const label = voiceProcessing
+    ? 'Processing...'
+    : voiceListening
+      ? 'Stop Listening'
+      : 'Voice Add';
+
+  const statusText = voiceListening
+    ? 'Listening for items...'
+    : voiceProcessing
+      ? 'Transcribing your list...'
+      : voiceSupported
+        ? 'Tap to add items by voice.'
+        : '';
+
   return (
     <div>
       <Button
-        variant="secondary"
+        variant={voiceListening ? 'primary' : 'secondary'}
         onClick={onVoiceCapture}
         disabled={voiceProcessing}
+        className={voiceListening ? 'voice-pulse' : ''}
       >
         {voiceProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
-        {voiceListening ? 'Stop Listening' : 'Voice Add'}
+        {label}
       </Button>
+
+      {statusText ? (
+        <p className="mt-2 text-xs text-text-muted">
+          {statusText}
+        </p>
+      ) : null}
 
       {voiceFallbackReason ? (
         <div className="mt-3 rounded-lg border border-semantic-warning/30 bg-semantic-warning/10 px-3 py-2 text-xs text-semantic-warning">

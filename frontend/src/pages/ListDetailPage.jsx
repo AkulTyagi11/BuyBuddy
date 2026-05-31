@@ -655,6 +655,12 @@ export default function ListDetailPage() {
     });
 
     const canManageShare = currentList?.owner === user?.id;
+    const collaboratorCount = collaboratorsWithNames.filter((collaborator) => collaborator.role !== 'owner').length;
+    const shareStatusLabel = canManageShare
+        ? collaboratorCount > 0
+            ? `Shared with ${collaboratorCount}`
+            : 'Private list'
+        : `Shared by ${currentList?.owner_username || 'Owner'}`;
     const collaboratorsWithNames = collaborators.map((collaborator) => ({
         ...collaborator,
         display_name:
@@ -693,6 +699,16 @@ export default function ListDetailPage() {
                             {items.length} item{items.length !== 1 ? 's' : ''} · {progress}% complete
                             {currentList.due_date && ` · Due ${new Date(currentList.due_date).toLocaleDateString()}`}
                         </p>
+                        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                            <span className="inline-flex items-center rounded-full border border-border-default bg-surface-muted px-3 py-1 font-semibold text-neutral-dark">
+                                {shareStatusLabel}
+                            </span>
+                            {currentList.is_shared ? (
+                                <span className="inline-flex items-center rounded-full bg-brand-primary-light/60 px-3 py-1 font-semibold text-brand-primary">
+                                    Shared
+                                </span>
+                            ) : null}
+                        </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                         <RealTimeIndicator status={collaborationStatus} />
