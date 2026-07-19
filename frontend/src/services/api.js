@@ -1,7 +1,12 @@
 import axios from 'axios';
 
+// In dev this stays '/api' and is proxied by Vite to the backend.
+// In production / mobile builds set VITE_API_BASE_URL to the full backend URL,
+// e.g. https://api.yourdomain.com/api
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -24,7 +29,7 @@ api.interceptors.response.use(
       const tokens = JSON.parse(localStorage.getItem('tokens') || 'null');
       if (tokens?.refresh) {
         try {
-          const { data } = await axios.post('/api/auth/token/refresh/', {
+          const { data } = await axios.post(`${API_BASE_URL}/auth/token/refresh/`, {
             refresh: tokens.refresh,
           });
           const newTokens = { access: data.access, refresh: data.refresh || tokens.refresh };

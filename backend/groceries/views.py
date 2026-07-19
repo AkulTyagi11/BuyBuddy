@@ -99,7 +99,7 @@ class GroceryItemListCreateView(generics.ListCreateAPIView):
             pk=list_id,
         ).first()
         if not grocery_list:
-            raise PermissionError('You do not have access to this list.')
+            raise PermissionDenied('You do not have access to this list.')
         item = serializer.save(grocery_list=grocery_list)
         broadcast_list_event(
             grocery_list.id,

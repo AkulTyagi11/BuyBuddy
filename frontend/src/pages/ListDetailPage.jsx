@@ -655,18 +655,18 @@ export default function ListDetailPage() {
     });
 
     const canManageShare = currentList?.owner === user?.id;
-    const collaboratorCount = collaboratorsWithNames.filter((collaborator) => collaborator.role !== 'owner').length;
-    const shareStatusLabel = canManageShare
-        ? collaboratorCount > 0
-            ? `Shared with ${collaboratorCount}`
-            : 'Private list'
-        : `Shared by ${currentList?.owner_username || 'Owner'}`;
     const collaboratorsWithNames = collaborators.map((collaborator) => ({
         ...collaborator,
         display_name:
             [collaborator.first_name, collaborator.last_name].filter(Boolean).join(' ')
             || collaborator.username,
     }));
+    const collaboratorCount = collaboratorsWithNames.filter((collaborator) => collaborator.role !== 'owner').length;
+    const shareStatusLabel = canManageShare
+        ? collaboratorCount > 0
+            ? `Shared with ${collaboratorCount}`
+            : 'Private list'
+        : `Shared by ${currentList?.owner_username || 'Owner'}`;
 
     const handleReuseVoiceSession = (session) => {
         const parsedItems = normalizeVoiceItems(session.parsed_items || []);
